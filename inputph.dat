@@ -1,0 +1,21 @@
+1.0d0     *** AP    - projectile mass number 
+0.0d0     *** ZP    - projectile charge (in units of e)
+60.0d0     *** AT    - target mass number
+20.0d0     *** ZT    - target charge (in units of e) 
+0.992  *** PRM   - factor of reduced mass [if zero,PRM=AP*AT/(AP+AT)]
+-48.00d0 *** Uws   - depth of Woods-Saxon potential (in MeV)
+1.2045d0    *** rows  - its radius parameter (in fm) [ Rws=rows*AT^1/3 ]
+0.671d0  *** difws - diffusity of WS-potential (in fm)
+5.828d0    *** Vso   - spin-orbit potential parameter (in MeV)
+1.007d0    *** roso  - its radius parameter (in fm) [ Rso=roso*AT^1/3 ]
+0.59d0    *** difso - diffusity of SO-potential (in fm)
+1.25d0    *** roc   - radius parameter of target-uniform-charged-sphere
+2.0d0     *** l     - orbital angular momentum
+2.5d0     *** j     - total angular momentum
+0.001d0   *** Emin  - min c.m. energy in the continuum (in MeV) 
+10.00d0    *** Emax  - max c.m. energy in the continuum (in MeV)
+0.005   *** he    - energy step in the Emin to Emax interval (in MeV)
+1         *** ibind - key for bound state (1 - calculate, 0 - no)
+-10.200d0 *** Eleft - min energy for bound state (in MeV)
+-0.00001d0  *** Eright- max energy for bound state (in MeV)
+1         *** iprint- key for output info (1 - print potentials, 0 -no)
