@@ -1,0 +1,6 @@
+vladph.for takes the inputph.dat file with the WS parameters and spits out the vladph.out (careful it is overwritten each time it is run). The output file has the potential values first then, the energy of the bound state (if it is unbound it will = 0.00), and the phase shift info.
+
+1) compile the code with gfortran (on MAC anyway)
+2) modify the inputph.dat file
+3) ./a.out
+4) look at vladph.out
