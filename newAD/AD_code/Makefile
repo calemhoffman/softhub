@@ -1,0 +1,83 @@
+ad	: ad.o adlib.o plotchi.o plotdata.o line.o legfits.o \
+	legfitc.o matinv.o legendre.o legnorm.o frame.o mvp.o mvpc.o mvpf.o \
+	 axes.o axlabel.o adjlin.o squeze.o 
+	gfortran -ffixed-line-length-132  -std=legacy  -o ad ad.o adlib.o plotchi.o plotdata.o line.o \
+	legfits.o legfitc.o matinv.o legendre.o legnorm.o frame.o mvp.o mvpc.o mvpf.o \
+	axes.o axlabel.o adjlin.o squeze.o
+	
+
+ad.o	:ad.f
+	gfortran -ffixed-line-length-132  -std=legacy  -c ad.f
+
+adlib.o	:adlib.f
+	gfortran -ffixed-line-length-132  -std=legacy  -c adlib.f
+
+plotchi.o :plotchi.f
+	   gfortran -ffixed-line-length-132  -std=legacy  -c plotchi.f
+
+plotdata.o :plotdata.f
+	    gfortran -ffixed-line-length-132  -std=legacy  -c plotdata.f
+line.o	:line.f
+	gfortran -ffixed-line-length-132  -std=legacy  -c line.f
+
+legfits.o :legfits.f
+	  gfortran -ffixed-line-length-132  -std=legacy  -c legfits.f
+
+legfitc.o :legfitc.f
+	  gfortran -ffixed-line-length-132  -std=legacy  -c legfitc.f
+legendre.o :legendre.f
+	   gfortran -ffixed-line-length-132  -std=legacy  -c legendre.f
+
+legnorm.o :legnorm.f
+	  gfortran -ffixed-line-length-132  -std=legacy  -c legnorm.f
+
+matinv.o :matinv.f
+	 gfortran -ffixed-line-length-132  -std=legacy  -c matinv.f
+
+dco1	: dco1.o adlib.o plotf.o plots.o  
+	gfortran -ffixed-line-length-132  -std=legacy  -o dco1 dco1.o adlib.o plotf.o plots.o \
+	mvp.o mvpc.o mvpf.o
+
+dco1.o	:dco1.f
+	gfortran -ffixed-line-length-132  -std=legacy  -c dco1.f
+
+dco2	: dco2.o adlib.o plotf.o plots.o  
+	gfortran -ffixed-line-length-132  -std=legacy  -o dco2 dco2.o adlib.o plotf.o plots.o \
+	mvp.o mvpc.o mvpf.o
+
+dco2.o	:dco2.f
+	gfortran -ffixed-line-length-132  -std=legacy  -c dco2.f
+
+legfit	: legfit.o matinv.o legfitc.o
+	gfortran -ffixed-line-length-132  -std=legacy  -o legfit legfit.o matinv.o legfitc.o
+
+legfit.o :legfit.f
+	 gfortran -ffixed-line-length-132  -std=legacy  -c legfit.f
+
+
+frame.o	:frame.f
+	gfortran -ffixed-line-length-132  -std=legacy  -c frame.f
+
+mvp.o	:mvp.f
+	gfortran -ffixed-line-length-132  -std=legacy  -c mvp.f
+
+mvpc.o	:mvpc.c
+	gcc -c mvpc.c
+
+mvpf.o	:mvpf.f
+	gfortran -ffixed-line-length-132  -std=legacy  -c mvpf.f
+
+axes.o	:axes.f
+	gfortran -ffixed-line-length-132  -std=legacy  -c axes.f
+
+axlabel.o	:axlabel.f
+	gfortran -ffixed-line-length-132  -std=legacy  -c axlabel.f
+
+adjlin.o	:adjlin.f
+	gfortran -ffixed-line-length-132  -std=legacy  -c adjlin.f
+
+squeze.0	:squeze.c
+	gcc -c squeze.c
+
+
+

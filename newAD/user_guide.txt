@@ -1,0 +1,105 @@
+for installation:
+
+## step by step 
+0. In Ubuntu, .Xdefaults need to be renamed as .Xresources
+   this is for the xterm windows setting (after pressing F12 key )
+
+1. in the AD_code dir, type "make" (it will read makefile)
+   (note: makefile2 is for a special version.)
+
+   you will need gfortran compiler, and some source files need gcc compiler.   
+	
+2. in the tools dir, type "make".
+
+
+
+## by all_in_one_install.sh 
+   the step1 and step2 are also set in the all_in_one_install.sh file. 
+
+#========================================================================
+
+for usage:
+
+## part 1 input setting 
+
+in the sample folder, there are two cases:
+
+for gamma-gamm 1439-1695 ( ie. 3134 state to 1695 state to ground state)
+case 1:
+angular dist. data from no gate, and assume alignment = 1.4 
+
+case 2
+angular dist. data from 1695 gate, and assume alignment = 2.3 
+
+	`````````````````````````````````````````
+	run=1;        <== user input 
+	x=$($cmd $run); 
+	
+	
+	GammaE=1439   <== user input 
+	aligment=1.4  <== user input 
+	
+	J1=4.5        <== user input 
+	J2=2.5
+	
+    
+	(
+	cat<<EOF
+	 Gamma-ray energy = ${GammaE}
+	 Theta    Yexp    Yerr 
+	 ----------------------- 
+	17.27	96.85	4.84   <== user input
+	31.72	99.49	4.97   <== user input
+	37.38	98.44	4.92   <== user input
+	50.07	98.14	4.91   <== user input  
+	58.28	94.47	4.72   <== user input
+	69.82	99.49	4.97   <== user input
+	79.95	105.67	5.28   <== user input
+	90	111.73	5.59       <== user input
+	
+	EOF
+	) > ${GammaE}${x}.0
+
+	`````````````````````````````````````````
+
+
+
+
+## part2 
+run the script (eg. run01_ad_1439.sh )
+it will pop up a xterm. 
+
+
+One has to type "1" first, it will load in the parameters
+	`````````````````````````````````````````
+	## the screen will print out 
+	% or error =  5.0 %
+	Alignment =  1.40 Feeding =  0.00
+	 Type in J1, J2 
+	J1 =  4.5
+	J2 =  2.5
+	`````````````````````````````````````````
+
+to add the other J1 values, ex, J1=3.5, 2.5, 1.5 ... 
+type in "5", it will add a J1 from J1=J1-1
+
+Once J1 values are set, press "F12" key, 
+then type "6" to plot the chi-square plot. 
+then type "l" to output the data to the external file.
+( if one doesn't want to visualize the results in the terminal,
+one can skip "F12" key, but a series of messy info will be printed on the 
+screen)
+
+type "x" to exit the AD program.
+
+the 1439a.0 and fort.3 files are generated.
+
+(note the ad_special version will process all the flow)
+
+#========================================================================
+
+## use xmgrace to plot 
+
+use to_xmgrace.sh to plot. 
+In the script, a template .par file is loaded. 
+One should edit the title/legend/etc... case by case. 

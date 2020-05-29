@@ -1,0 +1,14 @@
+      DATA AKEY /65/, BKEY /66/, CKEY /67/, DKEY /68/, EKEY /69/,
+     +     FKEY /70/, GKEY /71/, HKEY /72/, IKEY /73/, JKEY /74/,
+     +     KKEY /75/, LKEY /76/, MKEY /77/, NKEY /78/, OKEY /79/,
+     +     PKEY /80/, QKEY /81/, RKEY /82/, SKEY /83/, TKEY /84/,
+     +     UKEY /85/, VKEY /86/, WKEY /87/, XKEY /88/, YKEY /89/,
+     +     ZKEY /90/, TILDKEY /126/, BSLKEY /92/, BARKEY /124/,
+     +     AAKEY/97/, BBKEY/98/, CCKEY/99/, DDKEY/100/,EEKEY/101/,
+     +     FFKEY/102/,GGKEY/103/,HHKEY/104/,IIKEY/105/,JJKEY/106/,
+     +     KKKEY/107/,LLKEY/108/,MMKEY/109/,NNKEY/110/,OOKEY/111/,
+     +     PPKEY/112/,QQKEY/113/,RRKEY/114/,SSKEY/115/,TTKEY/116/,
+     +     UUKEY/117/,VVKEY/118/,WWKEY/119/,XXKEY/120/,YYKEY/121/,
+     +     ZZKEY/122/,
+     +     KEY0 /48/, SPKEY /32/,minkey /45/
+

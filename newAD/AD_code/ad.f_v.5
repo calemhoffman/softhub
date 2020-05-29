@@ -1,0 +1,598 @@
+!	edit by xinaiton
+!	version 5. remove the call squeze (file,file1)
+! 	allow to read J1, J2 data from file.
+!
+!	and press '5' for adding more (J1,J2) pair.
+!   allow user to press 'x' to exit.
+
+
+	PROGRAM ANGDIS
+
+c	Up to 9 angles
+c	Up to 6 set of Ji and Jf
+
+	include 'ad.inc'
+
+	dimension a(6), b(6), rk(6)
+	dimension faclog(170)
+	dimension al(10), xx(1), yy(1)			! Legendre Pol. coeff.
+	character file*40, file1*40,energy*6, ans
+	character buff1*40, buff2*40, buff3*40
+	character XXOPT
+	
+	DATA QD2 /1./, QD4 /1./
+	data R /2.5/, D /8/, T /5/	!Det.radius, Distance, Thickness
+	data mynum /6/				! in cm
+c	PARAMETER FAC = .017453293
+
+C      THIS PROGRAM CALCULATES CHI-SQUARED VALUES
+C      FROM EXPERIMENTAL ANGULAR DISTRIBUTIONS AS
+C      A FUNCTION OF MULTIPOLE MIXING RATIOS USING
+C      THE THEORETICAL ANGULAR DISTRIBUTION FORMULAE
+C      OF ROSE AND BRINK.
+
+	IRATE = 0				! Visual 550 setup.
+	ITERM = 3
+	IBF = 3
+	CALL INITT( IRATE )
+	CALL TERM ( ITERM , 1024 )
+	CALL SETBUF ( IBF )
+
+	n = 0					! initialization.
+
+c	irate = 3
+c	call initt ( irate )			! Setup Qume terminal.
+c	call alpha
+
+	  write (*,*) "This is version 5."
+
+1      	write(6,900)
+900    	FORMAT ('                        MENU			'/
+     +		'                       ------			'/
+     + 	'   1 - Input Detector Parameters(R) 6 - Plot Chi Square      '/
+     + 	'   2 - Calculate Qk coefs           7 - Plot Ang.Dis. Fit    '/
+     + 	'   3 - Input Ang.Dis. Data          8 - Clear (J1,J2) Memory '/
+     +	'   4 - Sigma(Alignment) & Feeding   9 - eXit		      '/
+     +	'   5 - Input Ji,Jf & Calc. Chi Sqr 10 - (L)egfit Data       '/
+     +  '                                   12 - Generate Data        ')
+
+
+
+
+
+
+!      READ (5,*) IOPT ! taking in the option from keyboard.
+	  READ (5,*) XXOPT
+	  IF ( XXOPT .EQ. '1' ) THEN
+		! to read data from 'ad_input.txt'	
+		! when press 1, the AD program will read it again.
+		  open (2, file = 'ad_input.txt', status = 'old')
+		  read (2,*) R,D,T
+		  read (2,*) E
+		  CALL QK ( E, QD2, QD4, R, D, T )
+		  read (2,*) file1
+		  read (2,*) sigma,fc
+		  read (2,*) ASPJ1
+		  read (2,*) ASPJ2
+		  close(2)
+	    write(*,193) 'Radius        = ',R,'[cm]'
+	    write(*,193) 'Tar.-Det.Dist = ',D,'[cm]'
+	    write(*,193) 'Det.Thickness = ',T,'[cm]'
+193	    format(A,F5.2,A)
+		goto 9992
+
+      ELSE IF ( XXOPT .EQ. '2' ) THEN
+		! to read in energy, from keyboard,
+		! we have two places to get the 'E' variable
+		! Here is the first place.
+9992   write(*,194) 'Gamma-Ray Energy = ',E,'[keV]'
+194	   format(A,F8.2,A)
+		goto 9993
+
+      ELSE IF ( XXOPT .EQ. '3' ) THEN
+
+9993  ans='y'
+
+
+	  IF ( ans .EQ. 'y' .OR. ans .EQ. '1' ) THEN
+
+	    !call squeze (file,file1) ! The old code, but I don't like.
+		
+		write(6,*) 'Now open the ',file1
+		
+
+	    open (2, file = file1, form = 'formatted', status = 'old')
+
+
+3001	write(6,*)' Display the input data.'
+
+		! now the program start to read xxx.0 file.
+		! here originally, AD will read variable E again.
+		! But I don't like it.
+		! So I will set a dummy variable to receice the value.
+
+	    ! read (2,3010) e ! OLD code.
+	    read (2,3010) exxx !exxx is dummy variable, we don't use it.
+3010	format (20x, f6.1)
+
+	    write(6,*)' E = ', E !now E is from ad_input.txt 
+
+
+	    call QK ( E, QD2, QD4, R, D, T )
+	    write(6,*)' QD2 = ', qd2
+	    write(6,*)' QD4 = ', qd4
+
+	    read (2,*) buff1, buff2, buff3
+  		 !write(*,*) buff1, buff2, buff3 
+	    read (2,*) buff1
+		 !write(*,*) buff1
+		 !write(*,*) '@@@@@---just up to here----@@@@'
+		 !read(5,*) !for stop
+
+		! the loop to take in data.
+		do i=1,10
+			read(2,*,end=305)   thet(i),yexp(i),yerr(i)
+    	    !write (6,*) thet(i),yexp(i),yerr(i)
+		end do
+
+305		close (2)
+
+
+
+
+	  else if (ichar(ans) .ge. 50 .and.
+	1	   ichar(ans) .le. 57) then
+	    ierr = ichar(ans) - 48
+	    if (errp .eq. 9) ierr = 10
+	    write(6,3100) ierr
+3100	    format (' Error is assumed to be ', i2,' %')
+	    write(6,3110)
+3110	    format (' type in theta, yield;          (0,0 when done)')
+       	    i = 1
+3200	    read(5,*) thetae,we
+	    if ( we .eq. 0 .and. ew .eq. 0 ) goto 306
+	    thet(i) = thetae
+	    yexp(i) = we
+	    yerr(i) = we * ierr/100.
+	    i=i+1
+	    go to 3200
+	  else
+301	    write(6,302)
+302 	    format (' type in theta, i(theta), err(theta);'
+     +		,' 0,0,0 when done')
+       	    i = 1
+304	    read(5,*) thetae,we,ew
+	    if ( we .eq. 0 .and. ew .eq. 0 ) goto 306
+	    thet(i) = thetae
+	    yexp(i) = we
+	    yerr(i) = ew
+	    if (ans .eq. '0') then
+	      if (thet(i) .eq. 0.) then
+		yexp(i) = yexp(i)/.97
+		yerr(i) = yerr(i)/.97
+	      else if (thet(i) .eq. 30.) then
+		yexp(i) = yexp(i)/1.05
+		yerr(i) = yerr(i)/1.05
+	      else if (thet(i) .eq. 45.) then
+		yexp(i) = yexp(i)/1.03
+		yerr(i) = yerr(i)/1.03
+	      else if (thet(i) .eq. 60.) then
+		yexp(i) = yexp(i)/.99
+		yerr(i) = yerr(i)/.99
+	      end if
+	    end if
+	    i=i+1
+	    go to 304
+	  end if
+
+306   	  lmax=i-1
+          if ( lmax .ge. 10 ) then
+            write(6,*)'# OF ANGLES CANNOT EXCEED 9'
+            write(6,*)'REENTER DATA WITH < 10 ANGLES'
+            goto 1
+          endif
+
+	  write(6,*)'  '
+	  write (6,4012)
+	  write (6,4014)
+	  yyy = 0
+	  yyye = 0
+	  do l=1,lmax
+            write (6,*) thet(l),yexp(l),yerr(l)
+			yyy = yyy + yexp(l)
+			yyye = yyye + yerr(l)
+	    end do
+	  write(6,*)'  '
+
+	  ! additional information output.
+	  ! by xination 
+	  write(6,3201) yyye/yyy*100
+3201		format('% or error = ',F4.1,' %')
+
+	  num = 0
+	  n = 0
+
+	goto 9994
+
+
+	ELSE IF ( XXOPT .EQ. '4' ) THEN
+	! in this part, get input of alignment and feeding.
+
+9994	if ( lmax .eq. 0 ) then
+		write(6,*) 'Must input data first!'
+		goto 1
+	  endif
+
+
+	  write(*,191) 'Alignment = ',sigma,' Feeding = ',fc
+191	  format(A,F5.2,A,F5.2)
+
+!	  already read from the ad_input.txt by xination
+!	  write (6,*)' Type sigma(alignment) and cascade feeding(>0)'
+!	  read (5,*) sigma, fc
+
+	  IF ( FC .EQ. 0 ) IFLAG = 0
+	  IF ( FC .NE. 0 ) IFLAG = 1
+
+
+	  goto 9995
+
+      ELSE IF ( XXOPT .EQ. '5' ) THEN
+	! here user, can input the J1,J2 set value.	
+
+501	  if ( lmax .eq. 0 ) then
+	     write(6,*) 'Must input data first!'
+	     go to 1
+	  endif
+
+9995  num = num + 1			! number of (J1,J2) combinations
+	  n = num
+
+5001  write(6,502)
+502	  FORMAT (' Type in J1, J2 ')
+
+!	the first data set will read from ad_input.txt
+!	the other data set will read from keyboard input.
+!	This part is for version 5.
+!*************************************************
+	  IF( ASPJ1 .GT. ASPJ2 ) THEN
+		SetJa1=ASPJ1
+		SetJa2=ASPJ1-1
+		SetJa3=ASPJ1-2
+		SetJa4=ASPJ1-3
+	  ELSE
+		SetJa1=ASPJ1
+		SetJa2=ASPJ1+1
+		SetJa3=ASPJ1+2	
+		SetJa4=ASPJ1+3
+	  ENDIF
+!*************************************************
+	  IF( n .EQ. 1) THEN
+       AJ1(1) = SetJa1
+       AJ2(1) = ASPJ2
+	   write(*,5003) 'J1 = ',SetJa1
+	   write(*,5003) 'J2 = ',ASPJ2
+5003   format(A,F4.1)
+	  ELSE IF( n .EQ. 2) THEN
+       AJ1(2) = SetJa2
+       AJ2(2) = ASPJ2
+	   write(*,5003) 'J1 = ',SetJa2
+	   write(*,5003) 'J2 = ',ASPJ2
+	  ELSE IF( n .EQ. 3) THEN
+       AJ1(3) = SetJa3
+       AJ2(3) = ASPJ2
+	   write(*,5003) 'J1 = ',SetJa3
+	   write(*,5003) 'J2 = ',ASPJ2
+	  ELSE IF( n .EQ. 4) THEN
+       AJ1(4) = SetJa4
+       AJ2(4) = ASPJ2
+	   write(*,5003) 'J1 = ',SetJa4
+	   write(*,5003) 'J2 = ',ASPJ2
+
+	  ELSE
+
+        read(5,*) AJ1(n), AJ2(n)
+
+	  ENDIF
+
+
+	  idel = 1			! default step size for arctan delta.
+
+	  if ( E .le. 0. ) then
+	    write(6,202)
+202	    FORMAT (' Enter Gamma-Ray Energy:  (in keV)')
+	    read (5,*) E
+	    call qk ( e, qd2, qd4, r, d, t )
+	  end if
+
+	  L0=AJ1(n)-AJ2(n)
+	    L0ABS=IABS(L0)
+	    IF ( L0ABS .GT. 0 ) AL0 = L0ABS
+	    IF ( L0ABS .LE. 0 ) AL0 = 1
+	  AL1=AL0+1
+	  CALL LOG1
+	  GOTO 50
+
+51     IF (SIGMA.GT.0) GOTO 40
+C
+C
+C      CALCULATE THE BK(J1), FOR PERFECT ALLIGNMENT
+C
+C
+       SF=SQRT(2*AJ1(n)+1)
+       J12=2*AJ1(n)
+       IS=MOD(J12,2)
+       IF(IS.EQ.1) GOTO 39
+		a(1)=AJ1(n)
+		a(2)=AJ1(n)
+		a(3)=2
+		a(4)=0
+		a(5)=0
+		a(6)=0
+		J1=AJ1(n)
+		CB=CLEB(A)
+		BK1(n,2)=((-1)**J1)*SF*CB
+		a(3)=4
+		CB=CLEB(A)
+		BK1(n,4)=((-1)**J1)*SF*CB
+       GOTO 52
+C
+39		a(1)=AJ1(n)
+		a(2)=AJ1(n)
+		a(3)=2
+		a(4)=.5
+		a(5)=-.5
+		a(6)=0
+		CB12=CLEB(A)
+		a(4)=-.5
+		a(5)=.5
+		CB22=CLEB(A)
+		a(3)=4
+		CB24=CLEB(A)
+		a(4)=.5
+		a(5)=-.5
+		CB14=CLEB(A)
+		I1=AJ1(n)-.5
+		I2=AJ1(n)+.5
+		BK1(n,2)=.5*SF*(((-1)**I1)*CB12+((-1)**I2)*CB22)
+		BK1(n,4)=.5*SF*(((-1)**I1)*CB14+((-1)**I2)*CB24)
+		GO TO 52
+C
+C
+C		NORMALIZE THE W(M1)
+C
+40		JA2=2*AJ1(n)
+		SIGSQ=SIGMA**2
+		JA4=4*AJ1(n)
+		SUM1=0
+		DO 105 M=0,JA4,2
+		  AM1=.5*(M-JA2)
+		  AMSQ=AM1**2
+		  X=-(AMSQ/(2*SIGSQ))
+		  EX=EXP(X)
+		  SUM1=SUM1+EX
+105		CONTINUE
+		CN1=1.0/SUM1
+C
+C
+C		CALCULATE BK(J1) FOR GAUSSIAN W(M1)
+C
+		a(1)=AJ1(n)
+                a(2)=AJ1(n)
+		a(6)=0
+		SFAC=SQRT(2*AJ1(n)+1)
+		DO 110 K=2,4,2
+		  a(3)=K
+		  BK1(n,K)=0
+		  DO 115 M=0,JA4,2
+		    AM1=.5*(M-JA2)
+		    AMSQ=AM1**2
+		    X=-(AMSQ/(2*SIGSQ))
+		    I=AJ1(n)-AM1
+		    a(4)=AM1
+		    a(5)=-AM1
+		    C=CLEB(A)
+		    EX=EXP(X)
+		    tTERM=CN1*EX*((-1)**I)*SFAC*C
+		    BK1(n,K)=BK1(n,K)+tTERM
+115		  CONTINUE
+110		CONTINUE
+		If(IFLAG.EQ.0) GOTO 52
+C
+C		CORRECT STATISTICAL TENSORS FOR CASCADE FEEDING
+C
+C
+		write(6,311)
+311		FORMAT (' ENTER CASCADE MULTIPOLARITY, AND'
+     +           	,' SPIN OF FEED STATE ')
+		read(5,*) AL12,AJI
+		write(6,312)
+312		FORMAT(' TYPE IN MIXING RATIO, B2(JI) AND B4(JI) ')
+		read(5,*) DEL12,BK2,BK4
+		FS=1.0-FC
+		ALP12=AL12+1
+C
+		a(1)=AJI
+		a(2)=AJI
+		a(3)=AJ1(n)
+		a(4)=AJ1(n)
+		a(5)=0
+		a(6)=AL12
+		W0=RACAH(A)
+		a(6)=ALP12
+		WP0=RACAH(A)
+		a(5)=2
+		WP2=RACAH(A)
+		a(5)=4
+		WP4=RACAH(A)
+		a(6)=AL12
+		W4=RACAH(A)
+		a(5)=2
+		W2=RACAH(A)
+C
+		U2=W2/W0
+		U4=W4/W0
+C
+		UP2=WP2/WP0
+		UP4=WP4/WP0
+C
+		DL12SQ=DEL12**2
+		DEN12=1+DL12SQ
+C
+		UK2=(U2+DL12SQ*UP2)/DEN12
+		UK4=(U4+DL12SQ*UP4)/DEN12
+C
+		BC2=UK2*BK2
+		BC4=UK4*BK4
+		B2K=FS*BK1(n,2)+FC*BC2
+		B4K=FS*BK1(n,4)+FC*BC4
+		BK1(n,2)=B2K
+		BK1(n,4)=B4K
+		GOTO 52
+C
+C		NOW CALCULATE RK(LL'J1J2)
+C
+50		DO 101 K=2,4,2
+		  a(1)=AL0
+		  a(2)=AL0
+		  a(3)=K
+		  a(4)=1
+		  a(5)=-1
+		  a(6)=0
+		  B(1)=AJ1(n)
+		  B(2)=AJ1(n)
+		  B(3)=AL0
+		  B(4)=AL0
+		  B(5)=K
+		  B(6)=AJ2(n)
+C
+		  C0=CLEB(A)
+		  Q0=RACAH(B)
+		  I0=1+AJ1(n)-AJ2(n)-K
+		  SFAC0=SQRT((2*AJ1(n)+1)*(2*AL0+1)*(2*AL0+1))
+
+		  RK0(n,K)=((-1)**I0)*SFAC0*C0*Q0
+C
+		  a(2)=AL1
+		  B(4)=AL1
+		  C1=CLEB(A)
+		  Q1=RACAH(B)
+		  I1=1+AJ1(n)-AJ2(n)+AL1-AL0-K
+		  SFAC1=SQRT((2*AJ1(n)+1)*(2*AL0+1)*(2*AL1+1))
+		  RK1(n,K)=((-1)**I1)*SFAC1*C1*Q1
+C
+		  a(1)=AL1
+		  B(3)=AL1
+		  C2=CLEB(A)
+		  Q2=RACAH(B)
+		  I2=1+AJ1(n)-AJ2(n)-K
+		  SFAC2=SQRT((2*AJ1(n)+1)*(2*AL1+1)*(2*AL1+1))
+		  RK2(n,K)=((-1)**I2)*SFAC2*C2*Q2
+101		CONTINUE
+
+		GO TO 51
+
+52	write (6,851) bk1(n,2), bk1(n,4)
+	write (6,851) rk0(n,2), rk0(n,4)
+	write (6,851) rk1(n,2), rk1(n,4)
+	write (6,851) rk2(n,2), rk2(n,4)
+851	format (' B2(Ji) = ', f10.5,'    B4(Ji) = ', f10.5 )
+
+
+!	ENCODE ( 6, '(f6.1)', energy ) E
+	write (energy, 4011) E
+ 4011	format (f6.1)
+ 	FILE (1:6) = energy
+	file (7:40) = '                                  '
+	! call squeze (file,file1) ! The old code, but I don't like it.
+
+
+        ! here, we overwrite the original file.
+		
+		OPEN ( 4, FILE = FILE1, form = 'formatted', STATUS = 'unknown')
+		
+	WRITE (4,4010) E
+4010	format (' Gamma-ray energy = ', f6.1 )
+
+*	WRITE (4,*) LMAX
+	WRITE (4,4012)
+4012	format (' Theta    Yexp    Yerr ')
+
+
+	WRITE (4,4014)
+4014	format (' ----------------------- ')
+	do l=1,lmax
+        write (4,*) thet(l),yexp(l),yerr(l)
+	end do
+4020	format (3(f6.1))
+*	WRITE (4,*) RK0(n,2), RK1(n,2), RK2(n,2), BK1(n,2), QD2
+*	WRITE (4,*) RK0(n,4), RK1(n,4), RK2(n,4), BK1(n,4), QD4
+
+	CLOSE (4)
+
+	ELSE IF ( XXOPT .EQ. '6' ) THEN
+	  if (num .lt. 1) goto 501
+	  call plotchi
+	ELSE IF ( XXOPT .EQ. '7' ) THEN
+	  call plotdata
+	ELSE IF ( XXOPT .EQ. '8' ) THEN
+	  write(6,*) '  '
+	  write (6, 810) (k, aj1(k), aj2(k), k=1,num)
+810	  format ( i3,') ', f4.1,' -->', f4.1 )
+	  write(6,*)'  '
+	  write(6,*)' How many sets do you want to plot? '
+	  read(5,*) mynum
+	  num = mynum
+	  write (5, 810) (k, aj1(k), aj2(k), k=1,num)
+	  write(6,*)'  '
+	  write(6,*)' Which set do you want to change? (0: None, 9: All! )'
+	  read(5,*) n
+	  if (n .ge. 1 .and. n .lt. 9) goto 5001
+	  if (n .ge. 9) then
+	    do i = 1,6
+	      aj1(i) = 0.
+	      aj2(i) = 0.
+	    end do
+	    n = 1
+	    num = 1
+	    goto 5001
+	  end if
+	  if (n .lt. 0) then
+	    n = 0
+	    num = 0
+	    e = 0.
+	    goto 1
+	  end if
+!-----------------I slightly modify here--------------
+	else if ( XXOPT .eq. '9' .OR. XXOPT .eq. 'x' ) then
+	  stop
+!----------------------------------------------------
+	else if ( XXOPT .eq. 'L' .or. XXOPT .eq. 'l' ) then
+	  call legfits
+	  goto 1
+	else if ( XXOPT .eq. '11' ) then
+	  write(6,*)' Enter 0 for IBM-PC (default) or 1 for Visual 550:'
+	  read(5,*) jterm
+	else if ( XXOPT .eq. '12' ) then
+	   do ks=1,10
+	      al(ks) = 0.
+	      end do
+	  write(6,*)' Enter A0, A2 and A4:'
+	  read(5,*) a0, al(3), al(5)
+	  al(1) = 1
+	  npoints = 1
+ 1200	  write(6,*)' Enter angle:			(-1 to return)'
+	  read(5,*) xx(1)
+	  if (xx(1) .eq. -1.) goto 1
+	  call legendre (xx, yy, al, npoints)
+	  ynorm = yy(1) * a0
+	  write(6,*)' Y = ', yy(1), ynorm
+	  goto 1200
+	else
+	  goto 1
+	end if
+
+	goto 1
+
+	END
+

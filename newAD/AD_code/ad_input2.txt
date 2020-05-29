@@ -1,0 +1,6 @@
+3.5,25,8.5        !detector dimension.
+1695              !energy of gamma ray.
+1695a.0            !the filename of the angular distribution.
+0.6,0             ! sigma/J, and feeding.
+2.5				  ! J1, initial spin
+1.5				  ! J2, final spin
