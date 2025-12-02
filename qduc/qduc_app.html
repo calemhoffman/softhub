@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QDUC Calculator - Nuclear Reaction Setup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 35px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: "⚛️";
+            font-size: 1.2em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+
+        .help-text {
+            display: block;
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .inline-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            padding: 8px 16px;
+            background: #e0e7ff;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .preset-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .submit-section {
+            margin-top: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .submit-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 18px 50px;
+            font-size: 1.3em;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .status-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+            font-weight: 600;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .status-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #bee5eb;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 300px;
+            background-color: #555;
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -150px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.85em;
+            font-weight: normal;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .example-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .example-box strong {
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 QDUC Calculator</h1>
+            <p>Nuclear Reaction Cross Section Calculator with Uncertainty Quantification</p>
+        </div>
+
+        <div class="form-container">
+            <form id="qduc-form">
+                <!-- Reaction Setup -->
+                <div class="section">
+                    <h2 class="section-title">Reaction Setup</h2>
+                    
+                    <div class="form-group">
+                        <label>
+                            Reaction Name
+                            <span class="tooltip">ℹ️
+                                <span class="tooltiptext">Descriptive name for your calculation (e.g., "36S_dp_d32")</span>
+                            </span>
+                        </label>
+                        <input type="text" id="reaction-name" value="36S_dp" required>
+                        <span class="help-text">Used for output file naming</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            Beam Energy (MeV/nucleon)
+                            <span class="tooltip">ℹ️
+                                <span class="tooltiptext">Laboratory energy of the deuteron beam per nucleon</span>
+                            </span>
+                        </label>
+                        <input type="number" id="beam-energy" value="10.0" step="0.01" required>
+                    </div>
+
+                    <div class="inline-group">
+                        <div class="form-group">
+                            <label>Target Mass Number (A)</label>
+                            <input type="number" id="target-a" value="36" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Target Atomic Number (Z)</label>
+                            <input type="number" id="target-z" value="16" required>
+                        </div>
+                    </div>
+
+                    <div class="preset-buttons">
+                        <button type="button" class="preset-btn" onclick="setTarget(36, 16)">³⁶S</button>
+                        <button type="button" class="preset-btn" onclick="setTarget(132, 50)">¹³²Sn</button>
+                        <button type="button" class="preset-btn" onclick="setTarget(40, 20)">⁴⁰Ca</button>
+                        <button type="button" class="preset-btn" onclick="setTarget(208, 82)">²⁰⁸Pb</button>
+                    </div>
+                </div>
+
+                <!-- Transferred Particle -->
+                <div class="section">
+                    <h2 class="section-title">Transferred Neutron State</h2>
+                    
+                    <div class="form-group">
+                        <label>
+                            Orbital (l, j)
+                            <span class="tooltip">ℹ️
+                                <span class="tooltiptext">Orbital angular momentum (l) and total angular momentum (j = l ± 1/2)</span>
+                            </span>
+                        </label>
+                        <select id="orbital" onchange="updateOrbitalInfo()">
+                            <option value="0,0.5">s₁/₂ (l=0, j=0.5)</option>
+                            <option value="1,0.5">p₁/₂ (l=1, j=0.5)</option>
+                            <option value="1,1.5" selected>p₃/₂ (l=1, j=1.5)</option>
+                            <option value="2,1.5">d₃/₂ (l=2, j=1.5)</option>
+                            <option value="2,2.5">d₅/₂ (l=2, j=2.5)</option>
+                            <option value="3,2.5">f₅/₂ (l=3, j=2.5)</option>
+                            <option value="3,3.5">f₇/₂ (l=3, j=3.5)</option>
+                            <option value="4,3.5">g₇/₂ (l=4, j=3.5)</option>
+                            <option value="4,4.5">g₉/₂ (l=4, j=4.5)</option>
+                            <option value="5,4.5">h₉/₂ (l=5, j=4.5)</option>
+                            <option value="5,5.5">h₁₁/₂ (l=5, j=5.5)</option>
+                            <option value="6,5.5">i₁₁/₂ (l=6, j=5.5)</option>
+                            <option value="6,6.5">i₁₃/₂ (l=6, j=6.5)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            Radial Nodes
+                            <span class="tooltip">ℹ️
+                                <span class="tooltiptext">Number of nodes in the radial wave function (0 = 1s/1p/1d, 1 = 2s/2p/2d, etc.)</span>
+                            </span>
+                        </label>
+                        <input type="number" id="nodes" value="0" min="0" max="3" required>
+                        <span class="help-text">Usually 0 for the lowest state</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            Q-value (MeV)
+                            <span class="tooltip">ℹ️
+                                <span class="tooltiptext">Reaction Q-value = Sₙ(final) - 2.224 MeV. Positive for exothermic, negative for endothermic.</span>
+                            </span>
+                        </label>
+                        <input type="number" id="q-value" value="4.0" step="0.001" required>
+                        <div class="example-box">
+                            <strong>How to calculate:</strong> Q = Sₙ(A+1) - 2.224 MeV<br>
+                            Example: If Sₙ(³⁷S) = 6.5 MeV, then Q = 4.276 MeV
+                        </div>
+                    </div>
+
+                    <div class="inline-group">
+                        <div class="form-group">
+                            <label>Target Spin</label>
+                            <input type="number" id="target-spin" value="0" step="0.5" required>
+                            <span class="help-text">³⁶S g.s. = 0</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Final State Spin</label>
+                            <input type="number" id="final-spin" value="1.5" step="0.5" readonly>
+                            <span class="help-text">Auto-filled from orbital</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="submit-section">
+                    <button type="submit" class="submit-btn">🚀 Run Calculation (416 iterations)</button>
+                    <div id="status-message" class="status-message"></div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function setTarget(a, z) {
+            document.getElementById('target-a').value = a;
+            document.getElementById('target-z').value = z;
+        }
+
+        function updateOrbitalInfo() {
+            const orbital = document.getElementById('orbital').value;
+            const [l, j] = orbital.split(',').map(parseFloat);
+            document.getElementById('final-spin').value = j;
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status-message');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message ${type}`;
+            statusDiv.style.display = 'block';
+        }
+
+        document.getElementById('qduc-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                reactionName: document.getElementById('reaction-name').value,
+                beamEnergy: document.getElementById('beam-energy').value,
+                targetA: document.getElementById('target-a').value,
+                targetZ: document.getElementById('target-z').value,
+                orbital: document.getElementById('orbital').value,
+                nodes: document.getElementById('nodes').value,
+                qValue: document.getElementById('q-value').value,
+                targetSpin: document.getElementById('target-spin').value,
+                finalSpin: document.getElementById('final-spin').value
+            };
+
+            showStatus('⏳ Generating input files and starting calculation...', 'info');
+
+            try {
+                const response = await fetch('/run-calculation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus(`✅ ${result.message}`, 'success');
+                } else {
+                    showStatus(`❌ Error: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        });
+
+        // Initialize
+        updateOrbitalInfo();
+    </script>
+</body>
+</html>
