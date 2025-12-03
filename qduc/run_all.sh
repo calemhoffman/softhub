@@ -18,7 +18,7 @@ fixed_lines1=(
   "3 3.5" #l and j
   "0" #nodes
   "2"
-  "4.1" #Q value
+  "-2.0" #Q value
   "1"
   "0" #132Sn spin
   "1"

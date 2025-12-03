@@ -95,62 +95,82 @@ for i in range(len(exp_angles)):
 print("-" * 80)
 
 # Create visualization
-fig = plt.figure(figsize=(14, 11))
+# 90s Theme Colors
+c_bg = '#FFFFFF'       # White background
+c_data = '#FF00FF'     # Magenta (Hot Pink)
+c_theory = '#00CED1'   # Dark Turquoise
+c_fill = '#FFD700'     # Gold/Yellow
+c_resid = '#32CD32'    # Lime Green
+c_err = '#FF4500'      # Orange Red
+c_weight = '#9400D3'   # Dark Violet
+c_grid = '#E0E0E0'     # Light Gray
+
+plt.rcParams['font.family'] = 'monospace' # Retro font feel
+
+fig = plt.figure(figsize=(14, 11), facecolor=c_bg)
 gs = fig.add_gridspec(4, 1, height_ratios=[3, 1, 1, 1], hspace=0.3)
 ax1 = fig.add_subplot(gs[0])
 ax2 = fig.add_subplot(gs[1])
 ax3 = fig.add_subplot(gs[2])
 ax4 = fig.add_subplot(gs[3])
 
-# Top panel: Data vs Normalized Theory
+# Top panel: Data vs Normalized Theory (Log Scale)
 ax1.errorbar(exp_angles, exp_cross_section, yerr=exp_errors, 
-             fmt='o', color='red', markersize=8, capsize=5, capthick=2,
+             fmt='s', color=c_data, markersize=8, capsize=5, capthick=2,
+             markeredgecolor='black', ecolor=c_data,
              label='Experimental Data', zorder=3)
 
-ax1.plot(theory_angles, optimal_norm * theory_mean, 'b-', linewidth=2, 
+ax1.plot(theory_angles, optimal_norm * theory_mean, '-', color=c_theory, linewidth=3, 
          label=f'Theory × {optimal_norm:.2f}', zorder=2)
 ax1.fill_between(theory_angles, 
                   optimal_norm * theory_minus1sigma, 
                   optimal_norm * theory_plus1sigma, 
-                  alpha=0.3, color='blue', label='Theory ±1σ (scaled)', zorder=1)
+                  alpha=0.4, color=c_fill, label='Theory ±1σ', zorder=1)
 
-ax1.set_ylabel('Cross Section (mb/sr)', fontsize=12)
+ax1.set_yscale('log') # Log scale requested
+ax1.set_ylabel('Cross Section (mb/sr)', fontsize=12, fontweight='bold', color=c_weight)
 ax1.set_title(f'Experimental Data vs Normalized Theory (Weighted Fit)\n' + 
               f'Normalization = {optimal_norm:.3f} ± {norm_uncertainty:.3f}, χ²/ν = {reduced_chi_squared:.3f}', 
-              fontsize=14)
-ax1.legend(fontsize=11)
-ax1.grid(True, alpha=0.3)
+              fontsize=14, fontweight='bold', color=c_weight)
+ax1.legend(fontsize=11, loc='upper right', framealpha=1, edgecolor=c_weight)
+ax1.grid(True, which='both', color=c_grid, linestyle='--', linewidth=0.5)
 ax1.set_xlim(0, 60)
-ax1.tick_params(labelbottom=False)
+ax1.tick_params(labelbottom=False, colors=c_weight, which='both')
+for spine in ax1.spines.values(): spine.set_color(c_weight); spine.set_linewidth(2)
 
 # Second panel: Residuals
 ax2.errorbar(exp_angles, normalized_residuals, yerr=1.0,
-             fmt='o', color='red', markersize=8, capsize=5, capthick=2)
-ax2.axhline(y=0, color='black', linestyle='-', linewidth=1)
-ax2.axhline(y=2, color='gray', linestyle='--', linewidth=1, alpha=0.5)
-ax2.axhline(y=-2, color='gray', linestyle='--', linewidth=1, alpha=0.5)
+             fmt='^', color=c_resid, markersize=8, capsize=5, capthick=2,
+             markeredgecolor='black', ecolor=c_resid)
+ax2.axhline(y=0, color='black', linestyle='-', linewidth=2)
+ax2.axhline(y=2, color=c_data, linestyle='--', linewidth=2, alpha=0.5)
+ax2.axhline(y=-2, color=c_data, linestyle='--', linewidth=2, alpha=0.5)
 
-ax2.set_ylabel('Normalized Residuals (σ)', fontsize=12)
-ax2.set_title('Residuals', fontsize=12)
-ax2.grid(True, alpha=0.3)
+ax2.set_ylabel('Residuals (σ)', fontsize=12, fontweight='bold', color=c_weight)
+ax2.set_title('Residuals', fontsize=12, fontweight='bold', color=c_weight)
+ax2.grid(True, color=c_grid, linestyle='--', linewidth=0.5)
 ax2.set_xlim(0, 60)
-ax2.tick_params(labelbottom=False)
+ax2.tick_params(labelbottom=False, colors=c_weight)
+for spine in ax2.spines.values(): spine.set_color(c_weight); spine.set_linewidth(2)
 
 # Third panel: Error percentages
-ax3.bar(exp_angles, exp_error_percent, width=2, color='orange', alpha=0.7, edgecolor='black')
-ax3.set_ylabel('Error (%)', fontsize=12)
-ax3.set_title('Percentage Errors', fontsize=12)
-ax3.grid(True, alpha=0.3, axis='y')
+ax3.bar(exp_angles, exp_error_percent, width=2, color=c_err, alpha=0.8, edgecolor='black', linewidth=1)
+ax3.set_ylabel('Error (%)', fontsize=12, fontweight='bold', color=c_weight)
+ax3.set_title('Percentage Errors', fontsize=12, fontweight='bold', color=c_weight)
+ax3.grid(True, axis='y', color=c_grid, linestyle='--', linewidth=0.5)
 ax3.set_xlim(0, 60)
-ax3.tick_params(labelbottom=False)
+ax3.tick_params(labelbottom=False, colors=c_weight)
+for spine in ax3.spines.values(): spine.set_color(c_weight); spine.set_linewidth(2)
 
 # Fourth panel: Normalized weights
-ax4.bar(exp_angles, weights_normalized * 100, width=2, color='green', alpha=0.7, edgecolor='black')
-ax4.set_xlabel('Angle (degrees)', fontsize=12)
-ax4.set_ylabel('Weight (%)', fontsize=12)
-ax4.set_title('Normalized Weights (1/σ²)', fontsize=12)
-ax4.grid(True, alpha=0.3, axis='y')
+ax4.bar(exp_angles, weights_normalized * 100, width=2, color=c_weight, alpha=0.8, edgecolor='black', linewidth=1)
+ax4.set_xlabel('Angle (degrees)', fontsize=12, fontweight='bold', color=c_weight)
+ax4.set_ylabel('Weight (%)', fontsize=12, fontweight='bold', color=c_weight)
+ax4.set_title('Normalized Weights (1/σ²)', fontsize=12, fontweight='bold', color=c_weight)
+ax4.grid(True, axis='y', color=c_grid, linestyle='--', linewidth=0.5)
 ax4.set_xlim(0, 60)
+ax4.tick_params(colors=c_weight)
+for spine in ax4.spines.values(): spine.set_color(c_weight); spine.set_linewidth(2)
 
 plt.savefig('fit_weighted.png', dpi=300, bbox_inches='tight')
 print(f"\nPlot saved as 'fit_weighted.png'")
