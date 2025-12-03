@@ -10,22 +10,22 @@ fixed_lines1=(
   "2"
   "0"
   "0"
-  "7.65"
-  "132 50"
+  "8.00"
+  "36 16"
   "1"
   "1"
   "0 0 0"
-  "6 6.5" #l and j
+  "3 3.5" #l and j
   "0" #nodes
   "2"
-  "-2.025" #Q value
+  "2.079" #Q value
   "1"
   "0" #132Sn spin
   "1"
-  "6"
+  "3"
   "4" #deuteron wf
   "1"
-  "6.5" #spin in outgoing
+  "3.5" #spin in outgoing
   "1"
   "7" #KDUQ
 )
