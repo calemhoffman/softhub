@@ -94,8 +94,7 @@ fig.update_layout(
         'font': {'size': 20, 'color': '#2C3E50', 'family': 'Arial Black, sans-serif'}
     },
     xaxis=dict(
-        title='<b>Center of Mass Angle (degrees)</b>',
-        titlefont=dict(size=16, color='#34495E', family='Arial, sans-serif'),
+        title=dict(text='<b>Center of Mass Angle (degrees)</b>', font=dict(size=16, color='#34495E', family='Arial, sans-serif')),
         tickfont=dict(size=12, color='#34495E'),
         gridcolor=colors['grid'],
         showgrid=True,
@@ -105,8 +104,7 @@ fig.update_layout(
         range=[0, 180]
     ),
     yaxis=dict(
-        title='<b>Differential Cross Section (mb/sr)</b>',
-        titlefont=dict(size=16, color='#34495E', family='Arial, sans-serif'),
+        title=dict(text='<b>Differential Cross Section (mb/sr)</b>', font=dict(size=16, color='#34495E', family='Arial, sans-serif')),
         tickfont=dict(size=12, color='#34495E'),
         gridcolor=colors['grid'],
         showgrid=True,

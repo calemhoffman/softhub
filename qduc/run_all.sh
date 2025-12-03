@@ -3,7 +3,7 @@
 # Reccomen that you run through the FRONT input once by hand, selecting the options 
 # you want, then look at in.front file for the values to fill in here
 # This one is 19O(d,p) at 8 MeV for d5/2 transfer to g.s. of 20O
-# Mod for 132Sn
+# Mod for 36S
 
 # First set of "constant" input lines
 fixed_lines1=(
@@ -11,14 +11,14 @@ fixed_lines1=(
   "0"
   "0"
   "8.00"
-  "36 16"
+  "36 16" #36S
   "1"
   "1"
   "0 0 0"
   "3 3.5" #l and j
   "0" #nodes
   "2"
-  "2.079" #Q value
+  "4.1" #Q value
   "1"
   "0" #132Sn spin
   "1"
