@@ -4,7 +4,7 @@ import glob
 import os
 
 # === CONFIGURATION ===
-pattern = "Outputs/21.test*"  # change if needed
+pattern = "Outputs/21.s1t*"  # change if needed
 output_file = "output.dat"
 skip_rows = 0                 # set to 1 or 2 if your files have header lines
 delimiter = None              # None = any whitespace; use ',' for csv, etc.
