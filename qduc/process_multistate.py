@@ -9,7 +9,7 @@ import os
 import sys
 
 CONFIG_FILE = "states.config"
-OUTPUTS_BASE = "Outputs"
+OUTPUTS_BASE = "sim_data/Outputs"
 RESULTS_DIR = "Results"
 
 # Create results directory

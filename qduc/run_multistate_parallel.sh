@@ -56,9 +56,9 @@ for state_data in "${states[@]}"; do
     echo ""
     
     # Create directories and clean old outputs to prevent false positives
-    inputs_dir="Inputs_state${state_id}"
-    outputs_dir="Outputs_state${state_id}"
-    workdir="Work_state${state_id}"
+    inputs_dir="sim_data/Inputs_state${state_id}"
+    outputs_dir="sim_data/Outputs_state${state_id}"
+    workdir="sim_data/Work_state${state_id}"
     rm -rf "$inputs_dir" "$outputs_dir" "$workdir"
     mkdir -p "$inputs_dir" "$outputs_dir" "$workdir"
     

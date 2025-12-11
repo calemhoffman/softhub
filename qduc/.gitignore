@@ -1,0 +1,18 @@
+# Simulation Data Directories (Too large for git)
+sim_data/Inputs_state*
+sim_data/Outputs_state*
+sim_data/Work_state*
+
+# Intermediate Files
+*.o
+*.mod
+*.log
+analysis.log
+
+# Python
+__pycache__/
+*.pyc
+
+# IDEs
+.vscode/
+*.code-workspace

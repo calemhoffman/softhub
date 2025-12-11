@@ -29,7 +29,7 @@ if level_files:
 else:
     print(f"Using default experimental data: {exp_data_file}")
 theory_file = f'Results/output_state{state_id}.dat'
-outputs_dir = f'Outputs_state{state_id}'
+outputs_dir = f'sim_data/Outputs_state{state_id}'
 output_plot = f'Results/fit_state{state_id}.png'
 output_txt = f'Results/fit_state{state_id}.txt'
 

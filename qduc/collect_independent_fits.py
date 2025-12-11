@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# No change needed for this file as it reads from Results/ which is not moving.
 """
 Aggregates independent fit results from all states into a single summary file.
 Reads Results/fit_state*.txt and writes Results/independent_fits_summary.txt
