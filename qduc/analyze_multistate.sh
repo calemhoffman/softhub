@@ -17,33 +17,36 @@ if [ $? -ne 0 ]; then
 fi
 echo ""
 
-# Step 2: Create multi-state comparison plot
-echo "Step 2: Creating multi-state comparison plot..."
-python3 plot_multistate.py
-if [ $? -ne 0 ]; then
-    echo "WARNING: Multi-state plotting failed"
-fi
-echo ""
+# 1. Process 416 calculation outputs for all states (Calculate Mean/Sigma)
+echo "--------------------------------------------------------"
+echo "Step 1: Processing Raw Calculations"
+echo "--------------------------------------------------------"
+python3 process_multistate.py
 
-# Step 3: Fit and plot each individual state (if experimental data exists)
-echo "Step 3: Fitting and plotting individual states..."
-if [ -f "experimental_data.dat" ]; then
-    # Read states.config to get state IDs
-    while IFS='|' read -r state_id rest; do
-        # Skip comments and empty lines
-        [[ "$state_id" =~ ^#.*$ ]] && continue
-        [[ -z "$state_id" ]] && continue
-        
-        # Trim whitespace
-        state_id=$(echo "$state_id" | xargs)
-        
-        echo "  Fitting state $state_id..."
-        python3 fit_and_plot_state.py $state_id
-        
-    done < states.config
-else
-    echo "  No experimental data found - skipping fits"
-fi
+# 2. Perform Independent Fits for ALL states
+echo "--------------------------------------------------------"
+echo "Step 2: Performing Independent Fits (States 1-9)"
+echo "--------------------------------------------------------"
+for i in {1..9}; do
+    echo "  Fitting State $i..."
+    python3 fit_and_plot_state.py $i > /dev/null
+done
+
+# 3. Aggregate Independent Fit Results
+echo "--------------------------------------------------------"
+echo "Step 3: Aggregating Fit Statistics"
+echo "--------------------------------------------------------"
+python3 collect_independent_fits.py
+
+# 4. Generate Independent Summary Plot
+echo "--------------------------------------------------------"
+echo "Step 4: Generating Independent Summary Visualization"
+echo "--------------------------------------------------------"
+python3 plot_multistate_independent.py
+
+echo "--------------------------------------------------------"
+echo "Analysis Complete! Check Results/ directory."
+echo "--------------------------------------------------------"
 
 echo ""
 echo "=========================================="

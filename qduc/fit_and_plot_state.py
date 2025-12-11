@@ -19,7 +19,15 @@ if len(sys.argv) < 2:
 state_id = sys.argv[1]
 
 # File paths
+# File paths
 exp_data_file = 'experimental_data.dat'
+# Check for specific level file first
+level_files = glob.glob(f'experimental_data_bylevel/level_{state_id}_*.dat')
+if level_files:
+    exp_data_file = level_files[0]
+    print(f"Using specific experimental data: {exp_data_file}")
+else:
+    print(f"Using default experimental data: {exp_data_file}")
 theory_file = f'Results/output_state{state_id}.dat'
 outputs_dir = f'Outputs_state{state_id}'
 output_plot = f'Results/fit_state{state_id}.png'
