@@ -55,9 +55,21 @@ for state_data in "${states[@]}"; do
     echo "  Beam energy:   $beam_energy MeV"
     echo ""
     
+    # Check if state is already complete
+    outputs_dir="sim_data/Outputs_state${state_id}"
+    if [ -d "$outputs_dir" ]; then
+        existing_count=$(ls "$outputs_dir"/21.s${state_id}t* 2>/dev/null | wc -l | xargs)
+        if [ "$existing_count" -eq "416" ]; then
+            echo "  ✓ State $state_id already complete (found 416 files). Skipping."
+            echo ""
+            continue
+        else
+            echo "  Found $existing_count/416 files. Rerunning incomplet state..."
+        fi
+    fi
+
     # Create directories and clean old outputs to prevent false positives
     inputs_dir="sim_data/Inputs_state${state_id}"
-    outputs_dir="sim_data/Outputs_state${state_id}"
     workdir="sim_data/Work_state${state_id}"
     rm -rf "$inputs_dir" "$outputs_dir" "$workdir"
     mkdir -p "$inputs_dir" "$outputs_dir" "$workdir"
@@ -144,11 +156,11 @@ for state_data in "${states[@]}"; do
                 mkdir -p "$job_workdir"
                 cd "$job_workdir"
                 
-                ../../FRONT_KDUQ < "../../$inputs_dir/input.$i" > /dev/null 2>&1
-                echo "tran.$short_name" | ../../TWOFNR > /dev/null 2>&1
-                mv *${short_name}* "../../$outputs_dir/" 2>/dev/null
+                ../../../FRONT_KDUQ < "../../../$inputs_dir/input.$i" > /dev/null 2>&1
+                echo "tran.$short_name" | ../../../TWOFNR > /dev/null 2>&1
+                mv *${short_name}* "../../../$outputs_dir/" 2>/dev/null
                 
-                cd ../..
+                cd ../../..
                 rm -rf "$job_workdir"
             ) &
         done

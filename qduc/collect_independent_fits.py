@@ -47,8 +47,8 @@ def main():
     
     summary_data = []
     
-    # Loop through states 1-9
-    for i in range(1, 10):
+    # Loop through states 1-18
+    for i in range(1, 19):
         fname = f"{RESULTS_DIR}/fit_state{i}.txt"
         if os.path.exists(fname):
             res = parse_fit_file(fname)

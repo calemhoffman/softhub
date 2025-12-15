@@ -1,0 +1,10 @@
+# Experimental data for State 13 (3442 keV)
+# angle (deg)    cross_section (mb/sr)    error (mb/sr)
+10.0             50.2                     9.62                    
+20.0             30.0                     4.75                    
+23.0             21.4                     3.31                    
+27.0             32.8                     5.06                    
+35.0             17.7                     2.9                     
+40.0             7.4                      1.92                    
+45.0             5.45                     1.06                    
+50.0             4.86                     0.902                   

@@ -1,0 +1,9 @@
+# Experimental data for State 10 (3180 keV)
+# angle (deg)    cross_section (mb/sr)    error (mb/sr)
+10.0             25.1                     7.07                    
+15.0             22.3                     4.26                    
+20.0             17.1                     2.87                    
+27.0             10.3                     2.04                    
+35.0             8.48                     1.73                    
+40.0             8.82                     1.75                    
+50.0             6.01                     1.09                    

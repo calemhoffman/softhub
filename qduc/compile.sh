@@ -9,8 +9,8 @@ echo ""
 export LIBRARY_PATH=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib
 
 # Compile FRONT_KDUQ
-echo "Compiling FRONT_KDUQ from front21_KDUQ.f..."
-gfortran -o FRONT_KDUQ front21_KDUQ.f -std=legacy -w
+echo "Compiling FRONT_KDUQ from src/front21_KDUQ.f..."
+gfortran -o FRONT_KDUQ src/front21_KDUQ.f -std=legacy -w
 if [ $? -eq 0 ]; then
     echo "✓ FRONT_KDUQ compiled successfully"
 else
@@ -19,8 +19,8 @@ else
 fi
 
 # Compile TWOFNR
-echo "Compiling TWOFNR from twofnr20.f..."
-gfortran -o TWOFNR twofnr20.f -std=legacy -w
+echo "Compiling TWOFNR from src/twofnr20.f..."
+gfortran -o TWOFNR src/twofnr20.f -std=legacy -w
 if [ $? -eq 0 ]; then
     echo "✓ TWOFNR compiled successfully"
 else

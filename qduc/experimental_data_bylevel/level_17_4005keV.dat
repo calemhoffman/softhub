@@ -1,0 +1,10 @@
+# Experimental data for State 17 (4005 keV)
+# angle (deg)    cross_section (mb/sr)    error (mb/sr)
+15.0             36.0                     6.05                    
+20.0             24.5                     4.39                    
+23.0             12.2                     2.0                     
+27.0             9.29                     2.3                     
+35.0             8.95                     1.79                    
+40.0             8.25                     1.68                    
+45.0             8.17                     1.64                    
+50.0             3.98                     0.926                   

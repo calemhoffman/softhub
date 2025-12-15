@@ -1,0 +1,8 @@
+# Experimental data for State 15 (3605 keV)
+# angle (deg)    cross_section (mb/sr)    error (mb/sr)
+10.0             15.5                     12.2                    
+15.0             15.2                     8.33                    
+20.0             11.8                     2.81                    
+23.0             9.83                     1.79                    
+45.0             3.13                     1.44                    
+50.0             2.74                     0.975                   
