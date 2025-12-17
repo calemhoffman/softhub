@@ -1,0 +1,9 @@
+# Experimental data for State 28 (~4881 keV)
+# angle (deg)    cross_section (mb/sr)    error (mb/sr)
+10.0             4.78                     47.8                    
+20.0             6.56                     7.06                    
+23.0             7.17                     2.22                    
+27.0             1.66                     14.9                    
+40.0             9.11                     1.78                    
+45.0             5.18                     12.3                    
+50.0             8.84                     1.4                     

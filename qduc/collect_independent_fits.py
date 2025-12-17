@@ -47,12 +47,12 @@ def main():
     
     summary_data = []
     
-    # Loop through states 1-18
-    for i in range(1, 19):
-        fname = f"{RESULTS_DIR}/fit_state{i}.txt"
+    # Loop through states 1-40
+    for state_id in range(1, 41):
+        fname = f"{RESULTS_DIR}/fit_state{state_id}.txt"
         if os.path.exists(fname):
             res = parse_fit_file(fname)
-            res['state_id'] = i
+            res['state_id'] = state_id
             summary_data.append(res)
         else:
             print(f"Warning: Results for state {i} not found ({fname})")

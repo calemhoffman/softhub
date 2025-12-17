@@ -178,6 +178,15 @@ def generate_plot(df, states):
             subset = csv_df[csv_df['ell'] == l_val]
             
             s_rel_csv = subset['c2s'] / csv_norm_factor
+            
+            # Apply correction factor for j=l-1/2 states (ell=1, j=0.5)
+            # Per user specification, these need a factor of 2
+            correction_factor = subset.apply(
+                lambda row: 2.0 if (row['ell'] == 1 and row['spin'] == 0.5) else 1.0, 
+                axis=1
+            )
+            s_rel_csv = s_rel_csv * correction_factor
+            
             # Error propagation for relative value
             # s_err_rel = s_rel * sqrt((err/val)^2 + (norm_err/norm_val)^2)
             norm_err = norm_row_csv.iloc[0]['c2s_err'] if not norm_row_csv.empty else 0.0
@@ -191,7 +200,7 @@ def generate_plot(df, states):
                          markeredgewidth=1.5,
                          capsize=5, markersize=10,
                          linestyle='None',
-                         label=f'Lit. L={int(l_val)}' if f'L={int(l_val)}' not in plt.gca().get_legend_handles_labels()[1] else "") # Avoid duplicate labels if possible or verify later
+                         label=f'Lit. L={int(l_val)}' if f'L={int(l_val)}' not in plt.gca().get_legend_handles_labels()[1] else "")
 
     plt.xlabel('Excitation Energy ($E_x$) [MeV]', fontsize=14)
     plt.ylabel('Relative Spectroscopic Factor ($S / S_{gs}$)', fontsize=14)

@@ -64,6 +64,26 @@ for fname in individual_files:
     all_individual_data.append(data[:, 1])
 all_individual_data = np.array(all_individual_data)
 
+# Read L-transfer from states.config to determine fit range
+config_file = 'states.config'
+l_transfer = None
+with open(config_file, 'r') as f:
+    for line in f:
+        line = line.strip()
+        if line.startswith('#') or not line:
+            continue
+        parts = [p.strip() for p in line.split('|')]
+        if parts[0] == state_id:
+            l_transfer = int(parts[2])  # L-transfer is 3rd column (index 2)
+            break
+
+if l_transfer is None:
+    print(f"WARNING: Could not find L-transfer for state {state_id} in {config_file}")
+    l_transfer = 0  # Default
+else:
+    print(f"L-transfer for state {state_id}: {l_transfer}")
+
+
 # If experimental data exists, perform fit
 if has_exp_data:
     exp_data = np.loadtxt(exp_data_file)
@@ -71,25 +91,38 @@ if has_exp_data:
     exp_cross_section = exp_data[:, 1]
     exp_errors = exp_data[:, 2]
     
+    # For L=1 states, restrict fit to angles < 30 degrees
+    if l_transfer == 1:
+        angle_mask = exp_angles < 30.0
+        exp_angles_fit = exp_angles[angle_mask]
+        exp_cross_section_fit = exp_cross_section[angle_mask]
+        exp_errors_fit = exp_errors[angle_mask]
+        print(f"L=1 state: Restricting fit to {len(exp_angles_fit)} points with angles < 30°")
+        print(f"Excluded {len(exp_angles) - len(exp_angles_fit)} points at higher angles")
+    else:
+        exp_angles_fit = exp_angles
+        exp_cross_section_fit = exp_cross_section
+        exp_errors_fit = exp_errors
+    
     exp_error_percent = (exp_errors / exp_cross_section) * 100
-    weights = 1.0 / (exp_errors**2)
+    weights = 1.0 / (exp_errors_fit**2)
     weights_normalized = weights / np.sum(weights)
     
-    theory_at_exp = np.interp(exp_angles, theory_angles, theory_mean)
+    theory_at_exp = np.interp(exp_angles_fit, theory_angles, theory_mean)
     
     def chi_squared_func(norm_factor):
         normalized_theory = norm_factor * theory_at_exp
-        chi_sq = np.sum(weights * (exp_cross_section - normalized_theory)**2)
+        chi_sq = np.sum(weights * (exp_cross_section_fit - normalized_theory)**2)
         return chi_sq
     
     result = minimize_scalar(chi_squared_func, bounds=(0.1, 200), method='bounded')
     optimal_norm = result.x
     min_chi_squared = result.fun
-    reduced_chi_squared = min_chi_squared / (len(exp_angles) - 1)
+    reduced_chi_squared = min_chi_squared / (len(exp_angles_fit) - 1)
     
     theory_normalized = optimal_norm * theory_at_exp
-    residuals = exp_cross_section - theory_normalized
-    normalized_residuals = residuals / exp_errors
+    residuals = exp_cross_section_fit - theory_normalized
+    normalized_residuals = residuals / exp_errors_fit
     
     def find_norm_uncertainty():
         target_chi_sq = min_chi_squared + 1
@@ -114,7 +147,8 @@ if has_exp_data:
     print(f"Optimal normalization factor: {optimal_norm:.4f} ± {norm_uncertainty:.4f}")
     print(f"Chi-squared (χ²): {min_chi_squared:.4f}")
     print(f"Reduced chi-squared (χ²/ν): {reduced_chi_squared:.4f}")
-    print(f"Degrees of freedom (ν): {len(exp_angles) - 1}")
+    print(f"Degrees of freedom (ν): {len(exp_angles_fit) - 1}")
+    print(f"Number of data points used in fit: {len(exp_angles_fit)}")
     print("=" * 80)
 else:
     optimal_norm = 1.0
@@ -214,7 +248,7 @@ for spine in ax2.spines.values(): spine.set_color(c_weight); spine.set_linewidth
 
 if has_exp_data:
     # Panel 3: Residuals
-    ax3.errorbar(exp_angles, normalized_residuals, yerr=1.0,
+    ax3.errorbar(exp_angles_fit, normalized_residuals, yerr=1.0,
                  fmt='^', color=c_resid, markersize=8, capsize=5, capthick=2,
                  markeredgecolor='black', ecolor=c_resid)
     ax3.axhline(y=0, color='black', linestyle='-', linewidth=2)
@@ -224,26 +258,28 @@ if has_exp_data:
     ax3.set_title('Residuals', fontsize=12, fontweight='bold', color=c_weight)
     ax3.grid(True, color=c_grid, linestyle='--', linewidth=0.5)
     ax3.set_xlim(0, 60)
-    ax3.tick_params(labelbottom=False, colors=c_weight)
+    ax3.tick_params(labelbottom=False, colors=c_weight, which='both')
     for spine in ax3.spines.values(): spine.set_color(c_weight); spine.set_linewidth(2)
     
-    # Panel 4: Error percentages
-    ax4.bar(exp_angles, exp_error_percent, width=2, color=c_err, alpha=0.8, edgecolor='black', linewidth=1)
+    # Panel 4: Error bars
+    ax4.bar(exp_angles_fit, exp_error_percent[angle_mask] if l_transfer == 1 else exp_error_percent,
+            width=1.0, color=c_err, alpha=0.7, edgecolor='black', linewidth=1)
     ax4.set_ylabel('Error (%)', fontsize=12, fontweight='bold', color=c_weight)
-    ax4.set_title('Percentage Errors', fontsize=12, fontweight='bold', color=c_weight)
-    ax4.grid(True, axis='y', color=c_grid, linestyle='--', linewidth=0.5)
+    ax4.set_title('Experimental Uncertainties', fontsize=12, fontweight='bold', color=c_weight)
+    ax4.grid(True, color=c_grid, linestyle='--', linewidth=0.5, axis='y')
     ax4.set_xlim(0, 60)
-    ax4.tick_params(labelbottom=False, colors=c_weight)
+    ax4.tick_params(labelbottom=False, colors=c_weight, which='both')
     for spine in ax4.spines.values(): spine.set_color(c_weight); spine.set_linewidth(2)
     
     # Panel 5: Weights
-    ax5.bar(exp_angles, weights_normalized * 100, width=2, color=c_weight, alpha=0.8, edgecolor='black', linewidth=1)
+    ax5.bar(exp_angles_fit, weights_normalized, width=1.0, color=c_weight,
+            alpha=0.7, edgecolor='black', linewidth=1)
+    ax5.set_ylabel('Weight', fontsize=12, fontweight='bold', color=c_weight)
     ax5.set_xlabel('Angle (degrees)', fontsize=12, fontweight='bold', color=c_weight)
-    ax5.set_ylabel('Weight (%)', fontsize=12, fontweight='bold', color=c_weight)
-    ax5.set_title('Normalized Weights (1/σ²)', fontsize=12, fontweight='bold', color=c_weight)
-    ax5.grid(True, axis='y', color=c_grid, linestyle='--', linewidth=0.5)
+    ax5.set_title('Fit Weights', fontsize=12, fontweight='bold', color=c_weight)
+    ax5.grid(True, color=c_grid, linestyle='--', linewidth=0.5, axis='y')
     ax5.set_xlim(0, 60)
-    ax5.tick_params(colors=c_weight)
+    ax5.tick_params(colors=c_weight, which='both')
     for spine in ax5.spines.values(): spine.set_color(c_weight); spine.set_linewidth(2)
 
 plt.savefig(output_plot, dpi=300, bbox_inches='tight')

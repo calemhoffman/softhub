@@ -27,7 +27,7 @@ python3.11 process_multistate.py
 echo "--------------------------------------------------------"
 echo "Step 2: Performing Independent Fits (States 1-18)"
 echo "--------------------------------------------------------"
-for i in {1..18}; do
+for i in {1..40}; do
     echo "  Fitting State $i..."
     python3.11 fit_and_plot_state.py $i > /dev/null
 done

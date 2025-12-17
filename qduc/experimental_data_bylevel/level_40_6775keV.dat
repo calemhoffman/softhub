@@ -1,0 +1,10 @@
+# Experimental data for State 40 (~6775 keV)
+# angle (deg)    cross_section (mb/sr)    error (mb/sr)
+10.0             47.8                     9.34                    
+20.0             83.7                     12.7                    
+23.0             18.0                     2.93                    
+27.0             19.7                     2.96                    
+35.0             8.01                     2.04                    
+40.0             12.0                     2.9                     
+45.0             3.81                     0.572                   
+50.0             10.3                     2.1                     

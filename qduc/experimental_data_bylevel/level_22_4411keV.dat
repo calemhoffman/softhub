@@ -1,0 +1,9 @@
+# Experimental data for State 22 (~4411 keV)
+# angle (deg)    cross_section (mb/sr)    error (mb/sr)
+10.0             32.3                     5.96                    
+20.0             19.5                     3.2                     
+23.0             17.8                     2.83                    
+27.0             16.6                     2.75                    
+35.0             17.0                     3.03                    
+40.0             14.2                     2.57                    
+45.0             7.22                     1.36                    

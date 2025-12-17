@@ -72,8 +72,13 @@ def plot_all():
     norms = load_independent_norms()
     states = load_states()
     
-    # Setup 3x3 Grid (for 9 states)
-    fig, axes = plt.subplots(3, 3, figsize=(18, 14), sharex=True)
+    # Calculate grid size
+    n_states = len(states)
+    cols = 5
+    rows = int(np.ceil(n_states / cols))
+    
+    # Setup Grid
+    fig, axes = plt.subplots(rows, cols, figsize=(20, 4 * rows), sharex=True)
     axes = axes.flatten()
     
     # Color scheme 
@@ -119,6 +124,9 @@ def plot_all():
             ax.errorbar(exp[:, 0], exp[:, 1], yerr=exp[:, 2], fmt='s', 
                        color=c_data, ecolor=c_data, markersize=4, 
                        capsize=2, label='Exp Data')
+        
+        # Set x-axis limit to 0-60 degrees
+        ax.set_xlim(0, 60)
                        
         if i == 0:
             ax.legend(fontsize=8, loc='upper right')

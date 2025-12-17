@@ -1,0 +1,7 @@
+# Experimental data for State 21 (~4368 keV)
+# angle (deg)    cross_section (mb/sr)    error (mb/sr)
+10.0             19.1                     7.73                    
+20.0             14.4                     4.68                    
+23.0             9.11                     1.59                    
+35.0             6.36                     1.7                     
+45.0             2.86                     1.17                    

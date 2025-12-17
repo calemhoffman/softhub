@@ -1,0 +1,8 @@
+# Experimental data for State 25 (~4675 keV)
+# angle (deg)    cross_section (mb/sr)    error (mb/sr)
+10.0             27.5                     6.32                    
+15.0             932.0                    141.0                   
+20.0             43.3                     7.27                    
+35.0             9.42                     1.84                    
+40.0             11.1                     2.39                    
+50.0             6.72                     1.1                     
