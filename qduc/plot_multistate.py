@@ -36,7 +36,7 @@ with open(CONFIG_FILE, 'r') as f:
         q_value = parts[1]
         l_transfer = parts[2]
         j_transfer = parts[3]
-        description = parts[9] if len(parts) > 9 else f"state_{state_id}"
+        description = parts[10] if len(parts) > 10 else f"state_{state_id}"
         states.append({
             'id': state_id,
             'q': q_value,
@@ -82,7 +82,7 @@ for i, state in enumerate(states):
 ax.set_yscale('log')
 ax.set_xlabel('Angle (degrees)', fontsize=14, fontweight='bold', color=c_weight)
 ax.set_ylabel('Cross Section (mb/sr)', fontsize=14, fontweight='bold', color=c_weight)
-ax.set_title('Multi-State QDUC Predictions\n¹⁹O(d,p)²⁰O - KDUQ Democratic Potential', 
+ax.set_title('Multi-State QDUC Predictions\n³⁶S(d,p)³⁷S - KDUQ Democratic Potential', 
              fontsize=16, fontweight='bold', color=c_weight)
 ax.legend(fontsize=11, loc='best', framealpha=1, edgecolor=c_weight)
 ax.grid(True, which='both', color=c_grid, linestyle='--', linewidth=0.5)

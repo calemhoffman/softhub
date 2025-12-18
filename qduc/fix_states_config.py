@@ -4,23 +4,26 @@ import os
 
 # Configuration
 q_gs_ground = 2.079 # MeV
+# Strictly for Ex >= 4.0, Q = -1.921
 FIXED_Q_VALUE = q_gs_ground - 4.0
 
 states_file = "states.config"
 csv_file = "c2s_good_only.csv"
 
-# 1. Truncate states.config to remove IDs >= 19
-print("Truncating states.config...")
+# 1. Truncate states.config to remove IDs >= 18 
+# (State 18 is at 4.072 MeV, which needs the fixed Q)
+print("Truncating states.config to keep only States 1-17...")
 valid_lines = []
 max_id = 0
 with open(states_file, 'r') as f:
     for line in f:
         is_bad = False
-        if line.strip() and not line.startswith('#'):
-            parts = line.split('|')
+        stripped = line.strip()
+        if stripped and not stripped.startswith('#'):
+            parts = stripped.split('|')
             try:
                 sid = int(parts[0])
-                if sid >= 19:
+                if sid >= 18:
                     is_bad = True
                 else:
                     if sid > max_id:
@@ -36,40 +39,32 @@ with open(states_file, 'w') as f:
 
 print(f"Truncated. Current max ID: {max_id}")
 
-# 2. Parse CSV and Append correctly
+# 2. Parse CSV and Append correctly starting from energy matching State 18 (4.072)
 new_states = []
 with open(csv_file, 'r') as f:
     reader = csv.DictReader(f)
     for row in reader:
         energy = float(row['energy'])
-        if energy > 4.08:
+        # Last kept state was 17 (3.666). Next is 18 (4.005 is actually state 17, 4.072 is 18).
+        # Let's check c2s_good_only.csv again.
+        # 16: 3.605, 17: 3.666 (wait, c2s_good_only has 4.005 at index 18, 4.072 at 19)
+        # states.config state 17 is 4.005. So we keep states 1-17.
+        if energy > 4.05: 
             # Extract parameters
             spin_float = float(row['spin'])
             spin_num = int(2 * spin_float)
             
             l_val = int(float(row['ell']))
-            parity = "+" if l_val % 2 == 0 else "-"
-            
-            # Spin string for description e.g. 3/2-
-            spin_str = f"{spin_num}/2{parity}"
             
             # Nodes logic
+            # L=1 -> 1, L!=1 -> 0 (based on previous states pattern for 36S(d,p))
             nodes = 1 if l_val == 1 else 0
             
             j_trans = spin_float
             
             # Description format: 37S_{keV}_{n}{orbital}{j}
-            # e.g. 37S_4147_1p1/2
-            # Orbital map: 0->s, 1->p, 2->d, 3->f, 4->g
             orbitals = {0: 's', 1: 'p', 2: 'd', 3: 'f', 4: 'g'}
             orb_char = orbitals.get(l_val, '?')
-            
-            # Node prefix? Existing descriptions:
-            # 37S_gs_0f7/2 (L=3 -> f, nodes=0 -> 0f)
-            # 37S_644_1p3/2 (L=1 -> p, nodes=1 -> 1p)
-            # 37S_1398_0d3/2 (L=2 -> d, nodes=0 -> 0d)
-            # So {nodes}{orbital_char}{J_frac}
-            # J_frac e.g. 3/2
             j_frac = f"{spin_num}/2"
             
             desc_energy = int(energy * 1000) # keV
@@ -84,21 +79,19 @@ with open(csv_file, 'r') as f:
                 'desc': description
             })
 
-print(f"Appending {len(new_states)} states...")
+print(f"Appending {len(new_states)} states from energy threshold 4.05 MeV...")
 
 with open(states_file, 'a') as f:
-    # Ensure newline start if needed (though writelines keeps newlines)
-    # Check if last line has newline
     if valid_lines and not valid_lines[-1].endswith('\n'):
         f.write('\n')
         
     for s in new_states:
         max_id += 1
+        # RULE: for all states with Ex >= 4.0 MeV, use Q = -1.921
         q_val = FIXED_Q_VALUE
         
-        # CORRECT FORMAT:
-        # ID | Q | L | J | Nodes | InitSpin | FinalSpin | Mass | Z | Beam | Description
-        # 1 | 2.079 | 3 | 3.5 | 0 | 0 | 3.5 | 36 | 16 | 8.0 | 37S_gs_0f7/2
+        # FORMAT MUST BE 11 COLUMNS:
+        # state_id | Q_value | l_transfer | j_transfer | nodes | initial_spin | final_spin | target_mass | target_Z | beam_energy | description
         
         line = f"{max_id} | {q_val:.3f} | {s['l']} | {s['j']} | {s['nodes']} | 0 | {s['spin_float']} | 36 | 16 | 8.0 | {s['desc']}"
         f.write(line + "\n")

@@ -29,7 +29,7 @@ with open(CONFIG_FILE, 'r') as f:
             continue
         parts = [p.strip() for p in line.split('|')]
         state_id = parts[0]
-        description = parts[9] if len(parts) > 9 else f"state_{state_id}"
+        description = parts[10] if len(parts) > 10 else f"state_{state_id}"
         states.append((state_id, description))
 
 print(f"Found {len(states)} active states in config file")
