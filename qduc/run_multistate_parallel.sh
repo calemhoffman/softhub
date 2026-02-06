@@ -55,18 +55,8 @@ for state_data in "${states[@]}"; do
     echo "  Beam energy:   $beam_energy MeV"
     echo ""
     
-    # Check if state is already complete
+    # MODIFIED: Always clean and re-run active states to reflect states.config changes
     outputs_dir="sim_data/Outputs_state${state_id}"
-    if [ -d "$outputs_dir" ]; then
-        existing_count=$(ls "$outputs_dir"/21.s${state_id}t* 2>/dev/null | wc -l | xargs)
-        if [ "$existing_count" -eq "416" ]; then
-            echo "  ✓ State $state_id already complete (found 416 files). Skipping."
-            echo ""
-            continue
-        else
-            echo "  Found $existing_count/416 files. Rerunning incomplet state..."
-        fi
-    fi
 
     # Create directories and clean old outputs to prevent false positives
     inputs_dir="sim_data/Inputs_state${state_id}"
