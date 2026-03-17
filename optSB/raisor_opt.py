@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel, WhiteKernel
 import os
@@ -8,7 +9,49 @@ import os
 # ==========================================
 # 1. CONFIGURATION & UI CONTROLS
 # ==========================================
-st.set_page_config(page_title="Active Learning Scanner", layout="wide")
+st.set_page_config(page_title="Active Learning Scanner", layout="wide", initial_sidebar_state="expanded")
+
+# Custom Dark Theme CSS
+st.markdown("""
+    <style>
+    /* Main Background */
+    .stApp {
+        background-color: #0b0e14;
+    }
+    /* Headers */
+    h1, h2, h3 {
+        color: #e0e0e0 !important;
+        font-family: 'Inter', sans-serif;
+    }
+    /* Cards/Metric Backgrounds */
+    [data-testid="stMetricValue"] {
+        color: #00d4ff !important;
+    }
+    div[data-testid="stMetric"] {
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    }
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #0d1117;
+        border-right: 1px solid #30363d;
+    }
+    /* Forms */
+    div[data-testid="stForm"] {
+        border-radius: 12px;
+        background-color: #161b22;
+        border: 1px solid #30363d;
+    }
+    /* Expander */
+    .streamlit-expanderHeader {
+        background-color: #161b22 !important;
+        border-radius: 8px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 CSV_FILE = "scan_backup.csv"
 X_MIN, X_MAX = 0.0, 10.0
@@ -36,6 +79,16 @@ with st.sidebar:
         if 'initialized' in st.session_state:
             del st.session_state.initialized
         st.rerun()
+
+    st.divider()
+    
+    # 2. CONVERGENCE METRICS (Moved to Sidebar)
+    if 'X_sampled' in st.session_state:
+        st.subheader("📈 Convergence")
+        # These are calculated later in the script, so we use placeholders or move calculations up.
+        # For simplicity, we'll rely on the script rerun flow which will have these values available 
+        # because the sidebar is rendered *after* initialization but *before* plotting.
+        # Actually, let's move the math section *above* the sidebar once we identify dependencies.
 
 def estimated_shape(x):
     """Your known, estimated line-shape (Prior)."""
@@ -130,197 +183,160 @@ st.title("🎯 Active Learning Distribution Scanner")
 st.markdown("This tool uses **Gaussian Process Regression** and **Adaptive Mesh Refinement** to suggest where to measure next, minimizing total experiments.")
 
 # Layout: UI on the left, Plot on the right
-col1, col2 = st.columns([1, 2])
+col1, col2 = st.columns([1, 2.5])
 
 with col1:
-    st.subheader("Data Summary")
-    st.metric("Total Points Scanned", len(st.session_state.X_sampled))
+    st.subheader("Quick Input")
     
-    st.divider()
-    
-    st.subheader("Next Recommended Scan")
-    st.info(f"Please measure your system at:\n### X = {next_x:.4f}")
+    st.info(f"Target X: **{next_x:.4f}**")
     
     # Input Form
-    with st.form("measurement_form"):
-        user_y = st.number_input("Enter the resulting Y value:", format="%.4f")
+    with st.form("measurement_form", clear_on_submit=True):
+        # We use st.text_input here because st.number_input has a known bug in Streamlit
+        # where hitting 'Enter' doesn't always sync the hand-typed value before the form 
+        # submission triggers, leading to 0.0 being submitted.
+        user_y_str = st.text_input("Resulting Y value (Enter to submit):", value="0.0")
         submitted = st.form_submit_button("Submit Measurement", use_container_width=True)
         
         if submitted:
-            # 1. Update Memory
-            st.session_state.X_sampled = np.append(st.session_state.X_sampled, next_x)
-            st.session_state.Y_sampled = np.append(st.session_state.Y_sampled, user_y)
-            
-            # 2. Save to CSV
-            current_data = np.column_stack((st.session_state.X_sampled, st.session_state.Y_sampled))
-            np.savetxt(CSV_FILE, current_data, delimiter=",", header="X_coordinate,Y_measurement", comments="")
-            
-            # 3. Force UI Refresh
-            st.rerun()
+            try:
+                val_y = float(user_y_str)
+                st.session_state.X_sampled = np.append(st.session_state.X_sampled, next_x)
+                st.session_state.Y_sampled = np.append(st.session_state.Y_sampled, val_y)
+                current_data = np.column_stack((st.session_state.X_sampled, st.session_state.Y_sampled))
+                np.savetxt(CSV_FILE, current_data, delimiter=",", header="X_coordinate,Y_measurement", comments="")
+                st.rerun()
+            except ValueError:
+                st.error("Please enter a valid numeric value.")
 
     st.divider()
     
-    # 2. CONVERGENCE METRICS
-    st.subheader("📈 Convergence Guidance")
-    max_uncertainty = np.max(gp_std)
-    # Heuristic: if max uncertainty is < 5% of the signal range, it's pretty good
-    signal_range = np.max(st.session_state.Y_sampled) - np.min(st.session_state.Y_sampled)
-    uncertainty_percent = (max_uncertainty / signal_range * 100) if signal_range > 0 else 100
-    
-    st.metric("Max Model Uncertainty", f"{max_uncertainty:.4f}", 
-              delta=f"{uncertainty_percent:.1f}% of range", delta_color="inverse")
-    
-    if uncertainty_percent < 5.0:
-        st.success("✅ Model appears well-converged!")
-    else:
-        st.warning("⚠️ More points recommended for better stability.")
-
-    st.divider()
-
-    # 3. MANAGE MEASUREMENTS
-    with st.expander("🛠️ Manage Measurements"):
-        st.write("Review or remove specific points:")
-        # Combine data for display
-        data_df = np.column_stack((np.arange(len(st.session_state.X_sampled)), 
-                                  st.session_state.X_sampled, 
-                                  st.session_state.Y_sampled))
-        
-        # Selection to delete
-        delete_idx = st.selectbox("Select Point Index to Remove:", options=range(len(st.session_state.X_sampled)), format_func=lambda i: f"Point {i}: X={st.session_state.X_sampled[i]:.2f}, Y={st.session_state.Y_sampled[i]:.2f}")
-        
-        if st.button("❌ Delete Selected Point", use_container_width=True):
-            st.session_state.X_sampled = np.delete(st.session_state.X_sampled, delete_idx)
-            st.session_state.Y_sampled = np.delete(st.session_state.Y_sampled, delete_idx)
-            
-            # Save updated data to CSV
-            current_data = np.column_stack((st.session_state.X_sampled, st.session_state.Y_sampled))
-            np.savetxt(CSV_FILE, current_data, delimiter=",", header="X_coordinate,Y_measurement", comments="")
-            st.rerun()
-
-# ==========================================
-# 5. LIVE PLOTLY VISUALIZATION
-# ==========================================
-with col2:
-    fig = go.Figure()
-
-    # Uncertainty Band
-    fig.add_trace(go.Scatter(
-        x=np.concatenate([X_plot, X_plot[::-1]]),
-        y=np.concatenate([upper_bound, lower_bound[::-1]]),
-        fill='toself', fillcolor='rgba(0, 176, 246, 0.2)',
-        line=dict(color='rgba(255,255,255,0)'),
-        hoverinfo="skip", name='95% Confidence Interval'
-    ))
-
-    # Prior
-    fig.add_trace(go.Scatter(
-        x=X_plot, y=Y_prior, mode='lines',
-        line=dict(color='gray', dash='dash', width=2), name='Estimated Prior'
-    ))
-
-    # GP Mean
-    fig.add_trace(go.Scatter(
-        x=X_plot, y=Y_gp_mean, mode='lines',
-        line=dict(color='blue', width=2), name='GP Prediction'
-    ))
-
-    # Sampled Points
-    fig.add_trace(go.Scatter(
-        x=st.session_state.X_sampled, y=st.session_state.Y_sampled,
-        mode='markers', marker=dict(color='red', size=10, symbol='x'),
-        name='Measured Points'
-    ))
-
-    fig.update_layout(
-        title="Live Surrogate Model",
-        xaxis_title="X Coordinate", yaxis_title="Measurement Value (Y)",
-        template="plotly_white", hovermode="x unified",
-        margin=dict(l=0, r=0, t=40, b=0)
-    )
-
-    # Peak Position Uncertainty Shaded Region
-    if peak_x_std > (X_MAX - X_MIN) * 0.001:  # Only show if not trivial
-        fig.add_vrect(
-            x0=max(X_MIN, peak_x_mean - peak_x_std), 
-            x1=min(X_MAX, peak_x_mean + peak_x_std),
-            fillcolor="gold", opacity=0.3, layer="below", line_width=0,
-            annotation_text="Peak Range", annotation_position="top left",
-            name="Peak X Uncertainty"
-        )
-
-    st.plotly_chart(fig, use_container_width=True)
-
-    # Acquisition Score Visualization
-    st.subheader("🧠 Acquisition Score (Why this point?)")
-    
-    # Calculate scores across the entire range
-    X_score = np.linspace(X_MIN, X_MAX, 250)
-    X_score_reshaped = X_score.reshape(-1, 1)
-    _, std_dev_score = gp.predict(X_score_reshaped, return_std=True)
-    
-    # Calculate curvature for the visual curve
-    curvatures = [calculate_curvature(gp, x) for x in X_score]
-    scores = (ALPHA * std_dev_score) + (BETA * np.array(curvatures))
-    
-    fig_score = go.Figure()
-    
-    fig_score.add_trace(go.Scatter(
-        x=X_score, y=scores, mode='lines',
-        line=dict(color='orange', width=3),
-        fill='tozeroy', fillcolor='rgba(255, 165, 0, 0.1)',
-        name='Total Score'
-    ))
-    
-    # Component breakdown
-    fig_score.add_trace(go.Scatter(
-        x=X_score, y=ALPHA * std_dev_score, mode='lines',
-        line=dict(color='cyan', dash='dot', width=1),
-        name='Uncertainty Component'
-    ))
-    
-    fig_score.add_trace(go.Scatter(
-        x=X_score, y=BETA * np.array(curvatures), mode='lines',
-        line=dict(color='magenta', dash='dot', width=1),
-        name='Curvature Component'
-    ))
-
-    fig_score.add_vline(x=next_x, line_width=2, line_dash="dash", line_color="green", 
-                       annotation_text="Next Best Point", annotation_position="top right")
-
-    fig_score.update_layout(
-        xaxis_title="X Coordinate", yaxis_title="Acquisition Score",
-        template="plotly_white", height=300,
-        margin=dict(l=0, r=0, t=30, b=0),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-    )
-    
-    st.plotly_chart(fig_score, use_container_width=True)
-
-# ==========================================
-# 6. FINAL ANALYSIS & QUERY
-# ==========================================
-st.divider()
-st.header("🏁 Final Model Analysis")
-c_ana1, c_ana2 = st.columns(2)
-
-with c_ana1:
-    st.subheader("Optimization Results")
+    st.subheader("Results")
     # Find the maximum of the GP Mean
     max_idx = np.argmax(Y_gp_mean)
     x_max_val = X_plot[max_idx]
     y_max_val = Y_gp_mean[max_idx]
     
-    st.success(f"### Predicted Maximum Found at:\n## X = {x_max_val:.4f} ± {peak_x_std:.4f}")
-    st.metric("Predicted Peak Value (Y)", f"{y_max_val:.4f}")
-    st.write("The ± value represents the **$1\sigma$ uncertainty on the peak location ($X$)** based on 100 Monte Carlo samples.")
+    st.metric("Predicted Peak X", f"{x_max_val:.4f}", delta=f"±{peak_x_std:.3f}")
+    st.metric("Predicted Peak Y", f"{y_max_val:.4f}")
 
-with c_ana2:
-    st.subheader("Query the Model")
-    query_x = st.number_input("Enter an X value to query:", min_value=X_MIN, max_value=X_MAX, value=(X_MIN+X_MAX)/2.0, step=0.1)
+    st.divider()
     
+    st.subheader("Query Model")
+    query_x = st.number_input("X query:", min_value=X_MIN, max_value=X_MAX, value=(X_MIN+X_MAX)/2.0, step=0.1)
     q_res, q_std = gp.predict(np.array([[query_x]]), return_std=True)
     q_total = q_res[0] + estimated_shape(query_x)
+    st.write(f"**Y = {q_total:.4f} ± {q_std[0]:.4f}**")
+
+# Update Sidebar with Data Management & Convergence (now that math is done)
+with st.sidebar:
+    st.divider()
+    st.subheader("🛠️ Manage Data")
     
-    st.info(f"Predicted Y at X={query_x:.4f}:")
-    st.write(f"### Y = {q_total:.4f} ± {q_std[0]:.4f}")
-    st.progress(min(max((q_total / (y_max_val if y_max_val !=0 else 1)), 0.0), 1.0), text="Height relative to peak")
+    # Convergence guidance
+    max_uncertainty = np.max(gp_std)
+    signal_range = np.max(st.session_state.Y_sampled) - np.min(st.session_state.Y_sampled)
+    uncertainty_percent = (max_uncertainty / signal_range * 100) if signal_range > 0 else 100
+    
+    st.metric("Model Uncertainty", f"{uncertainty_percent:.1f}%", help="Threshold for convergence is < 5%")
+    
+    with st.expander("View/Edit Points"):
+        delete_idx = st.selectbox("Point to Delete:", options=range(len(st.session_state.X_sampled)), 
+                                  format_func=lambda i: f"P{i}: X={st.session_state.X_sampled[i]:.2f}")
+        if st.button("❌ Remove Point", use_container_width=True):
+            st.session_state.X_sampled = np.delete(st.session_state.X_sampled, delete_idx)
+            st.session_state.Y_sampled = np.delete(st.session_state.Y_sampled, delete_idx)
+            current_data = np.column_stack((st.session_state.X_sampled, st.session_state.Y_sampled))
+            np.savetxt(CSV_FILE, current_data, delimiter=",", header="X_coordinate,Y_measurement", comments="")
+            st.rerun()
+
+# ==========================================
+# 5. UNIFIED PLOTLY VISUALIZATION
+# ==========================================
+with col2:
+    # Prepare Subplots
+    fig = make_subplots(
+        rows=2, cols=1, 
+        shared_xaxes=True, 
+        vertical_spacing=0.08,
+        row_heights=[0.65, 0.35],
+        subplot_titles=("Live Surrogate Model", "Acquisition Score")
+    )
+
+    # --- ROW 1: SURROGATE MODEL ---
+    # Uncertainty Band
+    fig.add_trace(go.Scatter(
+        x=np.concatenate([X_plot, X_plot[::-1]]),
+        y=np.concatenate([upper_bound, lower_bound[::-1]]),
+        fill='toself', fillcolor='rgba(0, 212, 255, 0.15)',
+        line=dict(color='rgba(255,255,255,0)'),
+        hoverinfo="skip", name='95% Confidence'
+    ), row=1, col=1)
+
+    # Prior
+    fig.add_trace(go.Scatter(
+        x=X_plot, y=Y_prior, mode='lines',
+        line=dict(color='rgba(255,255,255,0.3)', dash='dash', width=1.5), name='Prior'
+    ), row=1, col=1)
+
+    # GP Mean
+    fig.add_trace(go.Scatter(
+        x=X_plot, y=Y_gp_mean, mode='lines',
+        line=dict(color='#00d4ff', width=3), name='Prediction'
+    ), row=1, col=1)
+
+    # Sampled Points
+    fig.add_trace(go.Scatter(
+        x=st.session_state.X_sampled, y=st.session_state.Y_sampled,
+        mode='markers', marker=dict(color='#ff4b4b', size=10, symbol='circle', 
+                                    line=dict(color='white', width=1)),
+        name='Measured'
+    ), row=1, col=1)
+
+    # Peak Range (Shaded)
+    if peak_x_std > (X_MAX - X_MIN) * 0.001:
+        fig.add_vrect(
+            x0=max(X_MIN, peak_x_mean - peak_x_std), 
+            x1=min(X_MAX, peak_x_mean + peak_x_std),
+            fillcolor="gold", opacity=0.15, layer="below", line_width=0,
+            row=1, col=1
+        )
+
+    # --- ROW 2: ACQUISITION SCORE ---
+    X_score = np.linspace(X_MIN, X_MAX, 300)
+    _, std_dev_score = gp.predict(X_score.reshape(-1, 1), return_std=True)
+    curvatures = [calculate_curvature(gp, x) for x in X_score]
+    scores = (ALPHA * std_dev_score) + (BETA * np.array(curvatures))
+    
+    fig.add_trace(go.Scatter(
+        x=X_score, y=scores, mode='lines',
+        line=dict(color='#ffa500', width=2.5),
+        fill='tozeroy', fillcolor='rgba(255, 165, 0, 0.15)',
+        name='Acq. Score'
+    ), row=2, col=1)
+
+    # Vertical line for Next Best Point
+    fig.add_vline(x=next_x, line_width=2, line_dash="dash", line_color="#00f224", 
+                  annotation_text="Next Target", annotation_position="top right",
+                  row="all", col=1)
+
+    # Styling
+    fig.update_layout(
+        template="plotly_dark",
+        height=750,
+        margin=dict(l=20, r=20, t=60, b=40),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        hovermode="x unified",
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
+    )
+    
+    fig.update_xaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', zeroline=False)
+    fig.update_yaxes(showgrid=True, gridcolor='rgba(255,255,255,0.05)', zeroline=False)
+
+    st.plotly_chart(fig, use_container_width=True)
+
+# ==========================================
+# 6. FINAL ANALYSIS & QUERY
+# ==========================================
+# Removed legacy individual plots and analysis columns, now integrated above.
