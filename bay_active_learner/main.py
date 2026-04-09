@@ -65,6 +65,11 @@ def main():
     print("\nTop 5 highest priority reactions to sequence matching Light Curve Data:")
     cols_to_show = ['n1', 'z1', 'n_neutrons1', 'label', 'priority_score']
     print(prioritized_df[cols_to_show].head(5))
+    
+    print("\nGenerating visualization...")
+    from engine.visualizer import ModelVisualizer
+    vis = ModelVisualizer()
+    vis.plot_zn_space(train_X, train_Y, candidate_X, prioritized_df['priority_score'].values)
 
 if __name__ == "__main__":
     main()
