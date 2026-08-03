@@ -64,10 +64,13 @@ for state_data in "${states[@]}"; do
     rm -rf "$inputs_dir" "$outputs_dir" "$workdir"
     mkdir -p "$inputs_dir" "$outputs_dir" "$workdir"
     
-    # Fixed parameters matching run_all.sh EXACTLY
-    # Note: Some values (like 1.25 0.65) are hardcoded in run_all.sh
+    # Fixed parameters for 36S(d,t)35S. Entrance-channel deuteron potential
+    # uses Watanabe folding so the 416 KDUQ nucleon-potential ensemble drives
+    # the entrance channel (the triton exit channel has no KDUQ ensemble;
+    # it uses the fixed D.Y. Pang GDP08 global potential instead).
+    # Sequence verified by probing FRONT_KDUQ interactively for ireac=5.
     fixed_lines1=(
-        "2"                         # Reaction type (d,p)
+        "5"                         # Reaction type (d,t)
         "0"                         # Entrance channel calc
         "0"                         # Exit channel calc
         "$beam_energy"              # Beam energy
@@ -79,17 +82,18 @@ for state_data in "${states[@]}"; do
         "$nodes"                    # Nodes
         "2"                         # Specify Q-value
         "$Q_value"                  # Q-value
-        "1"                         # ?
+        "1"                         # Non-locality, incident (deuteron) channel: no
         "$initial_spin"             # Initial spin
-        "1"                         # ?
-        "6"                         # ?
-        "1"                         # ?
-        "1"                         # Non-locality incident (Line 20)
-        "$final_spin"               # Target spin outgoing (Line 21)
-        "1"                         # Outgoing potential type (Line 22)
-        "7"                         # Final potential choices (7=KDUQ, Line 23)
+        "1"                         # Incident channel potential: from built-in
+        "4"                         # Deuteron potential: [4] Watanabe folding
+        "1"                         # Deuteron wave function: [1] Reid soft-core
+        "1"                         # Non-locality, outgoing (triton) channel: no
+        "$final_spin"               # Target spin outgoing
+        "1"                         # Outgoing (triton) channel potential: from built-in
+        "3"                         # Triton potential: [3] D.Y. Pang et al. GDP08
+        "5"                         # Nucleon potential for folding: [5] KDUQ Democratic global
     )
-    
+
     fixed_lines2=(
         "2"             # ?
         "1"             # ?
@@ -99,26 +103,26 @@ for state_data in "${states[@]}"; do
         "0"             # ?
         "0"             # ?
     )
-    
+
     # Create all input files first
     echo "Creating input files..."
     for i in $(seq 1 416); do
         padded_i=$(printf "%03d" $i)
         short_name="s${state_id}t${padded_i}"
         filename="$inputs_dir/input.$i"
-        
+
         {
             echo "$short_name"
             echo "State $state_id: $description - KDUQ set $i"
-            
+
             for line in "${fixed_lines1[@]}"; do
                 echo "$line"
             done
-            
-            echo "$i"
-            echo "5"
-            echo "$i"
-            
+
+            echo "$i"    # KDUQ sample number (1-416), entrance-channel deuteron potential
+            echo "1"     # Use default <d|t> vertex constant D0
+            echo "2"     # Finite-range treatment: local-energy (default)
+
             for line in "${fixed_lines2[@]}"; do
                 echo "$line"
             done
