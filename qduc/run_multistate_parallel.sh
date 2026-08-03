@@ -95,13 +95,11 @@ for state_data in "${states[@]}"; do
     )
 
     fixed_lines2=(
-        "2"             # ?
-        "1"             # ?
-        "2"             # ?
-        "1.25 0.65"     # Geometry? (Hardcoded in run_all.sh)
-        "6"             # ?
-        "0"             # ?
-        "0"             # ?
+        "1.25 0.65"     # Neutron binding potential: radius, diffuseness (fm)
+        "6"             # Spin-orbit: strength of l.sigma (~6.0 MeV)
+        "0"             # Bound state non-locality (0 usually)
+        "0"             # Bound state spin-orbit radius (0 = use central geometry)
+        "0"             # Bound state spin-orbit diffuseness
     )
 
     # Create all input files first
