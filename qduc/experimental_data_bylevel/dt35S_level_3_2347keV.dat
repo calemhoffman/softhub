@@ -1,0 +1,8 @@
+# Reaction: 36S(d,t)35S  ELAB=16.0 MeV
+# State 3: 35S level at 2347 keV  Jpi=3/2-  (transfer 1p3/2)
+# Angle(deg)  Cross_Section(mb/sr)  Error(mb/sr)
+  15.0    1.3000E+01    3.9800E+00
+  23.0    6.6400E+00    1.4500E+00
+  27.0    1.3400E+01    2.1500E+00
+  35.0    3.9200E+00    5.8800E-01
+  40.0    1.9900E+00    8.8100E-01

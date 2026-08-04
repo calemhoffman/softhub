@@ -22,11 +22,18 @@ def main():
     os.makedirs(results_dir, exist_ok=True)
 
     # 1. Load Experimental Data
-    # Match the logic in fit_and_plot_state.py
+    # Preferred: dt35S by-level files, which are numbered by *level* index
+    # (level = state_id - 1, since state 1 is the 0 keV ground state = level 0).
+    # Fall back to the older level_<state_id>_*.dat naming, then the global file.
     exp_data_file = 'experimental_data.dat'
-    level_files = glob.glob(f'experimental_data_bylevel/level_{state_id}_*.dat')
-    if level_files:
-        exp_data_file = level_files[0]
+    level_index = int(state_id) - 1
+    dt_files = glob.glob(f'experimental_data_bylevel/dt35S_level_{level_index}_*.dat')
+    legacy_files = glob.glob(f'experimental_data_bylevel/level_{state_id}_*.dat')
+    if dt_files:
+        exp_data_file = dt_files[0]
+        print(f"Using specific experimental data: {exp_data_file}")
+    elif legacy_files:
+        exp_data_file = legacy_files[0]
         print(f"Using specific experimental data: {exp_data_file}")
     else:
         print(f"Using default experimental data: {exp_data_file}")
@@ -145,17 +152,22 @@ def main():
 
     # All 416 curves vs Data
     ax2.errorbar(exp_angles, exp_cross_section, yerr=exp_errors, fmt='ko', label='Exp Data')
+
+    # Build a common angle grid from the first theory file and accumulate every
+    # individually-normalized curve (SF_i * theory_i) so we can plot their mean.
+    ref_angles = np.loadtxt(individual_files[0])[:, 0]
+    normalized_curves = np.zeros((len(individual_files), len(ref_angles)))
     for i, fname in enumerate(individual_files):
-        if i % 10 == 0: # Plot every 10th to keep it clean
-            data = np.loadtxt(fname)
-            ax2.plot(data[:,0], spectroscopic_factors[i] * data[:,1], color='gray', alpha=0.1, linewidth=0.5)
-    
-    # Add mean curve
-    # Load the already-processed mean theory for comparison
-    theory_mean_file = f'Results/output_state{state_id}.dat'
-    if os.path.exists(theory_mean_file):
-        tm_data = np.loadtxt(theory_mean_file)
-        ax2.plot(tm_data[:,0], mean_sf * tm_data[:,1], 'r-', linewidth=2, label='Mean of Fits')
+        data = np.loadtxt(fname)
+        norm_curve = spectroscopic_factors[i] * np.interp(ref_angles, data[:, 0], data[:, 1])
+        normalized_curves[i] = norm_curve
+        if i % 10 == 0:  # Plot every 10th to keep it clean
+            ax2.plot(ref_angles, norm_curve, color='gray', alpha=0.1, linewidth=0.5)
+
+    # Mean fit curve = average of the individually-normalized curves (consistent
+    # with the SFs that were actually fit to the 21.s{id}t* outputs).
+    mean_curve = normalized_curves.mean(axis=0)
+    ax2.plot(ref_angles, mean_curve, 'r-', linewidth=2, label='Mean of Fits')
 
     ax2.set_yscale('log')
     ax2.set_xlim(0, 60)
