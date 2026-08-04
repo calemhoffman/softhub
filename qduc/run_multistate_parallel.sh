@@ -3,7 +3,7 @@
 # Simpler parallel approach using background jobs and wait
 # More reliable than xargs for Fortran programs that write to current directory
 
-CONFIG_FILE="states.config"
+CONFIG_FILE="${1:-states.config}"
 NUM_CORES=8
 MAX_JOBS=8  # Maximum parallel jobs
 
@@ -163,6 +163,7 @@ for state_data in "${states[@]}"; do
         # Progress reporting
         echo "  Progress: $batch_end/416"
     done
+    end_time=$(date +%s)
     elapsed=$((end_time - start_time))
     
     # Count output files
